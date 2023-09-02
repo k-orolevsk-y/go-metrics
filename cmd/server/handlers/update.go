@@ -16,7 +16,7 @@ func UpdateGauge(storage stor.Storage) http.HandlerFunc {
 			return
 		}
 
-		params := ParseUrlParams("/update/gauge/", r.URL)
+		params := ParseURLParams("/update/gauge/", r.URL)
 		if len(params) != 2 {
 			w.WriteHeader(http.StatusNotFound)
 			return
@@ -43,7 +43,7 @@ func UpdateCounter(storage stor.Storage) http.HandlerFunc {
 			return
 		}
 
-		params := ParseUrlParams("/update/counter/", r.URL)
+		params := ParseURLParams("/update/counter/", r.URL)
 		if len(params) != 2 {
 			w.WriteHeader(http.StatusNotFound)
 			return

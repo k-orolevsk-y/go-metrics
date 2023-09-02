@@ -19,13 +19,13 @@ func ValidateContentType(r *http.Request, contentType string) bool {
 	return requestContentType == contentType
 }
 
-type ParsedUrlParams []string
+type ParsedURLParams []string
 
-func ParseUrlParams(path string, url *url.URL) ParsedUrlParams {
+func ParseURLParams(path string, url *url.URL) ParsedURLParams {
 	urlPath := strings.Replace(url.Path, path, "", 1)
 	split := strings.Split(urlPath, "/")
 
-	params := make(ParsedUrlParams, 0)
+	params := make(ParsedURLParams, 0)
 	for _, param := range split {
 		if param == "" {
 			continue
