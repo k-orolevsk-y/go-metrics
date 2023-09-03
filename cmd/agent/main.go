@@ -74,6 +74,14 @@ func updateMetric(name string, metric Metric) error {
 
 	url := fmt.Sprintf("%s/update/%s/%s/%v", APIUrl, metric.Type, name, value)
 
-	_, err := http.Post(url, "text/plain", nil)
-	return err
+	res, err := http.Post(url, "text/plain", nil)
+	if err != nil {
+		return err
+	}
+
+	if err = res.Body.Close(); err != nil {
+		return err
+	}
+
+	return nil
 }
