@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -10,6 +11,8 @@ import (
 var (
 	poolInterval   = time.Duration(2)
 	reportInterval = time.Duration(10)
+
+	ErrorInvalidMetricValueType = errors.New("invalid metric value type")
 )
 
 const APIUrl = "http://localhost:8080"
@@ -51,11 +54,26 @@ func updateMetrics(m *RuntimeMetrics) {
 func updateMetric(name string, metric Metric) error {
 	var value interface{}
 
-	if metric.Type == GaugeType {
+	switch metric.Value.(type) {
+	case float64:
+		if metric.Type != GaugeType {
+			return ErrorInvalidMetricValueType
+		}
+
 		valueFloat64 := metric.Value.(float64)
 		value = strconv.FormatFloat(valueFloat64, 'f', 1, 64)
-	} else {
+
+		break
+	case int64:
+		if metric.Type != CounterType {
+			return ErrorInvalidMetricValueType
+		}
+
 		value = metric.Value.(int64)
+
+		break
+	default:
+		return ErrorInvalidMetricValueType
 	}
 
 	url := fmt.Sprintf("%s/update/%s/%s/%v", APIUrl, metric.Type, name, value)
