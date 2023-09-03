@@ -10,33 +10,34 @@ import (
 func TestBadRequest(t *testing.T) {
 	tests := []struct {
 		name           string
-		argHttpMethod  string
+		argHTTPMethod  string
 		wantStatusCode int
 	}{
 		{
 			name:           "Positive GET",
-			argHttpMethod:  http.MethodGet,
+			argHTTPMethod:  http.MethodGet,
 			wantStatusCode: http.StatusBadRequest,
 		},
 		{
 			name:           "Positive POST",
-			argHttpMethod:  http.MethodPost,
+			argHTTPMethod:  http.MethodPost,
 			wantStatusCode: http.StatusBadRequest,
 		},
 		{
 			name:           "Positive DELETE",
-			argHttpMethod:  http.MethodDelete,
+			argHTTPMethod:  http.MethodDelete,
 			wantStatusCode: http.StatusBadRequest,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			request := httptest.NewRequest(tt.argHttpMethod, "/", nil)
+			request := httptest.NewRequest(tt.argHTTPMethod, "/", nil)
 
 			w := httptest.NewRecorder()
 			BadRequest(w, request)
 
 			res := w.Result()
+			defer res.Body.Close()
 
 			assert.Equal(t, res.StatusCode, tt.wantStatusCode)
 		})

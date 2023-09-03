@@ -72,6 +72,7 @@ func TestUpdateGauge(t *testing.T) {
 			handlerUpdateGauge(w, request)
 
 			res := w.Result()
+			defer res.Body.Close()
 
 			require.Equal(t, res.StatusCode, tt.wantStatusCode)
 		})
@@ -149,6 +150,7 @@ func TestUpdateCounter(t *testing.T) {
 			handlerUpdateCounter(w, request)
 
 			res := w.Result()
+			defer res.Body.Close()
 
 			assert.Equal(t, res.StatusCode, tt.wantStatusCode)
 		})

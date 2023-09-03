@@ -62,16 +62,12 @@ func updateMetric(name string, metric Metric) error {
 
 		valueFloat64 := metric.Value.(float64)
 		value = strconv.FormatFloat(valueFloat64, 'f', 1, 64)
-
-		break
 	case int64:
 		if metric.Type != CounterType {
 			return ErrorInvalidMetricValueType
 		}
 
 		value = metric.Value.(int64)
-
-		break
 	default:
 		return ErrorInvalidMetricValueType
 	}
