@@ -29,13 +29,13 @@ type RuntimeMetrics struct {
 	RandomValue Metric
 }
 
-func (m *RuntimeMetrics) New() {
+func (m *RuntimeMetrics) Init() {
 	m.Runtime = make(map[string]Metric)
 	m.PollCount = Metric{Type: CounterType, Value: int64(0)}
 	m.RandomValue = Metric{Type: GaugeType, Value: float64(0)}
 }
 
-func (m *RuntimeMetrics) Renew() error {
+func (m *RuntimeMetrics) Update() error {
 	time.Sleep(time.Second * time.Duration(config.GetPollInterval()))
 
 	var runtimeMetrics runtime.MemStats

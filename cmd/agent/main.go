@@ -21,12 +21,12 @@ func main() {
 	}
 
 	var metricsStore metrics.RuntimeMetrics
-	metricsStore.New()
+	metricsStore.Init()
 
 	restyClient := resty.New()
 	for {
 		go func() {
-			err := metricsStore.Renew()
+			err := metricsStore.Update()
 			if err != nil {
 				panic(err)
 			}
