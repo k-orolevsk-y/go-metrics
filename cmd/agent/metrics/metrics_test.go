@@ -7,7 +7,7 @@ import (
 
 func TestRuntimeMetrics(t *testing.T) {
 	var runtimeMetrics RuntimeMetrics
-	runtimeMetrics.New()
+	runtimeMetrics.Init()
 
-	assert.NoError(t, runtimeMetrics.Renew())
+	assert.NoError(t, runtimeMetrics.Update())
 }
