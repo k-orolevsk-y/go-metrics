@@ -2,7 +2,7 @@ package metrics
 
 import (
 	"errors"
-	"github.com/k-orolevsk-y/go-metricts-tpl/cmd/agent/flags"
+	"github.com/k-orolevsk-y/go-metricts-tpl/cmd/agent/config"
 	"math/rand"
 	"runtime"
 	"time"
@@ -36,7 +36,7 @@ func (m *RuntimeMetrics) New() {
 }
 
 func (m *RuntimeMetrics) Renew() error {
-	time.Sleep(time.Second * time.Duration(flags.Data.PollInterval))
+	time.Sleep(time.Second * time.Duration(config.GetPollInterval()))
 
 	var runtimeMetrics runtime.MemStats
 	runtime.ReadMemStats(&runtimeMetrics)

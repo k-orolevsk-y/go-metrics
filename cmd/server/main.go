@@ -2,17 +2,20 @@ package main
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/k-orolevsk-y/go-metricts-tpl/cmd/server/flags"
+	"github.com/k-orolevsk-y/go-metricts-tpl/cmd/server/config"
 	"github.com/k-orolevsk-y/go-metricts-tpl/cmd/server/handlers"
 	"github.com/k-orolevsk-y/go-metricts-tpl/cmd/server/storage"
 )
 
 func main() {
-	flags.Init()
+	if err := config.Init(); err != nil {
+		panic(err)
+	}
+
 	storage := stor.NewMem()
 
 	r := setupRouter(&storage)
-	if err := r.Run(flags.Data.Host); err != nil {
+	if err := r.Run(config.GetAddress()); err != nil {
 		panic(err)
 	}
 }

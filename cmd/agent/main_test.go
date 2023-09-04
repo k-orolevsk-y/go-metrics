@@ -2,9 +2,10 @@ package main
 
 import (
 	"github.com/go-resty/resty/v2"
-	"github.com/k-orolevsk-y/go-metricts-tpl/cmd/agent/flags"
+	"github.com/k-orolevsk-y/go-metricts-tpl/cmd/agent/config"
 	"github.com/k-orolevsk-y/go-metricts-tpl/cmd/agent/metrics"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"net"
 	"net/http"
 	"net/http/httptest"
@@ -47,12 +48,11 @@ func Test_updateMetric(t *testing.T) {
 		},
 	}
 
-	flags.Init()
+	err := config.Init()
+	require.NoError(t, err)
 
 	l, err := net.Listen("tcp", ":8080")
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	server := httptest.NewUnstartedServer(http.HandlerFunc(handlerServer))
 	if err = server.Listener.Close(); err != nil {

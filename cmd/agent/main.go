@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/go-resty/resty/v2"
-	"github.com/k-orolevsk-y/go-metricts-tpl/cmd/agent/flags"
+	"github.com/k-orolevsk-y/go-metricts-tpl/cmd/agent/config"
 	"github.com/k-orolevsk-y/go-metricts-tpl/cmd/agent/metrics"
 	"log"
 	"strconv"
@@ -16,7 +16,9 @@ var (
 )
 
 func main() {
-	flags.Init()
+	if err := config.Init(); err != nil {
+		panic(err)
+	}
 
 	var metricsStore metrics.RuntimeMetrics
 	metricsStore.New()
@@ -35,7 +37,7 @@ func main() {
 }
 
 func updateMetrics(metricsStore *metrics.RuntimeMetrics, restyClient *resty.Client) {
-	time.Sleep(time.Second * time.Duration(flags.Data.ReportInterval))
+	time.Sleep(time.Second * time.Duration(config.GetReportInterval()))
 
 	for k, v := range metricsStore.Runtime {
 		if err := updateMetric(k, v, restyClient); err != nil {
@@ -73,7 +75,7 @@ func updateMetric(name string, metric metrics.Metric, restyClient *resty.Client)
 		return ErrorInvalidMetricValueType
 	}
 
-	url := fmt.Sprintf("http://%s/update/%s/%s/%v", flags.Data.ServerHost, metric.Type, name, value)
+	url := fmt.Sprintf("http://%s/update/%s/%s/%v", config.GetAddress(), metric.Type, name, value)
 
 	_, err := restyClient.R().
 		SetHeader("Content-Type", "text/plain").

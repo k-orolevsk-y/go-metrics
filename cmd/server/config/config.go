@@ -1,0 +1,23 @@
+package config
+
+import (
+	"github.com/k-orolevsk-y/go-metricts-tpl/cmd/server/config/env"
+	"github.com/k-orolevsk-y/go-metricts-tpl/cmd/server/config/flags"
+)
+
+func Init() error {
+	if err := env.Init(); err != nil {
+		return err
+	}
+	flags.Init()
+
+	return nil
+}
+
+func GetAddress() string {
+	if env.Config.Address == "" {
+		return flags.Config.Address
+	}
+
+	return env.Config.Address
+}
