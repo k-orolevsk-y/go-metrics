@@ -1,7 +1,8 @@
-package main
+package metrics
 
 import (
 	"errors"
+	"github.com/k-orolevsk-y/go-metricts-tpl/cmd/agent/flags"
 	"math/rand"
 	"runtime"
 	"time"
@@ -35,7 +36,7 @@ func (m *RuntimeMetrics) New() {
 }
 
 func (m *RuntimeMetrics) Renew() error {
-	time.Sleep(time.Second * poolInterval)
+	time.Sleep(time.Second * time.Duration(flags.Data.PollInterval))
 
 	var runtimeMetrics runtime.MemStats
 	runtime.ReadMemStats(&runtimeMetrics)

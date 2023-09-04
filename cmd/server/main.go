@@ -2,15 +2,17 @@ package main
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/k-orolevsk-y/go-metricts-tpl/cmd/server/flags"
 	"github.com/k-orolevsk-y/go-metricts-tpl/cmd/server/handlers"
 	"github.com/k-orolevsk-y/go-metricts-tpl/cmd/server/storage"
 )
 
 func main() {
+	flags.Init()
 	storage := stor.NewMem()
 
 	r := setupRouter(&storage)
-	if err := r.Run(":8080"); err != nil {
+	if err := r.Run(flags.Data.Host); err != nil {
 		panic(err)
 	}
 }

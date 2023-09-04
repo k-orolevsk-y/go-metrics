@@ -2,6 +2,8 @@ package main
 
 import (
 	"github.com/go-resty/resty/v2"
+	"github.com/k-orolevsk-y/go-metricts-tpl/cmd/agent/flags"
+	"github.com/k-orolevsk-y/go-metricts-tpl/cmd/agent/metrics"
 	"github.com/stretchr/testify/assert"
 	"net"
 	"net/http"
@@ -16,7 +18,7 @@ func handlerServer(w http.ResponseWriter, _ *http.Request) {
 func Test_updateMetric(t *testing.T) {
 	type args struct {
 		name   string
-		metric Metric
+		metric metrics.Metric
 	}
 	tests := []struct {
 		name    string
@@ -25,25 +27,27 @@ func Test_updateMetric(t *testing.T) {
 	}{
 		{
 			name:    "Positive Gauge Test",
-			args:    args{"TestGauge", Metric{Type: GaugeType, Value: float64(0.5)}},
+			args:    args{"TestGauge", metrics.Metric{Type: metrics.GaugeType, Value: float64(0.5)}},
 			wantErr: false,
 		},
 		{
 			name:    "Positive Counter Test",
-			args:    args{"TestCounter", Metric{Type: CounterType, Value: int64(1)}},
+			args:    args{"TestCounter", metrics.Metric{Type: metrics.CounterType, Value: int64(1)}},
 			wantErr: false,
 		},
 		{
 			name:    "Negative Gauge Test",
-			args:    args{"TestGauge", Metric{Type: GaugeType, Value: int64(10)}},
+			args:    args{"TestGauge", metrics.Metric{Type: metrics.GaugeType, Value: int64(10)}},
 			wantErr: true,
 		},
 		{
 			name:    "Positive Counter Test",
-			args:    args{"TestCounter", Metric{Type: CounterType, Value: float64(5.10)}},
+			args:    args{"TestCounter", metrics.Metric{Type: metrics.CounterType, Value: float64(5.10)}},
 			wantErr: true,
 		},
 	}
+
+	flags.Init()
 
 	l, err := net.Listen("tcp", ":8080")
 	if err != nil {
