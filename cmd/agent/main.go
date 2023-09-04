@@ -3,7 +3,8 @@ package main
 import (
 	"errors"
 	"fmt"
-	"net/http"
+	"github.com/go-resty/resty/v2"
+	"log"
 	"strconv"
 	"time"
 )
@@ -21,6 +22,7 @@ func main() {
 	var metrics RuntimeMetrics
 	metrics.New()
 
+	restyClient := resty.New()
 	for {
 		go func() {
 			err := metrics.Renew()
@@ -29,29 +31,29 @@ func main() {
 			}
 		}()
 
-		updateMetrics(&metrics)
+		updateMetrics(&metrics, restyClient)
 	}
 }
 
-func updateMetrics(m *RuntimeMetrics) {
+func updateMetrics(m *RuntimeMetrics, restyClient *resty.Client) {
 	time.Sleep(time.Second * reportInterval)
 
 	for k, v := range m.Runtime {
-		if err := updateMetric(k, v); err != nil {
-			panic(err)
+		if err := updateMetric(k, v, restyClient); err != nil {
+			log.Printf("[Warning] %s - %v", k, err)
 		}
 	}
 
-	if err := updateMetric("PollCount", m.PollCount); err != nil {
-		panic(err)
+	if err := updateMetric("PollCount", m.PollCount, restyClient); err != nil {
+		log.Printf("[Warning] PollCount - %v", err)
 	}
 
-	if err := updateMetric("RandomValue", m.RandomValue); err != nil {
-		panic(err)
+	if err := updateMetric("RandomValue", m.RandomValue, restyClient); err != nil {
+		log.Printf("[Warning] RandomValue - %v", err)
 	}
 }
 
-func updateMetric(name string, metric Metric) error {
+func updateMetric(name string, metric Metric, restyClient *resty.Client) error {
 	var value interface{}
 
 	switch metric.Value.(type) {
@@ -74,12 +76,10 @@ func updateMetric(name string, metric Metric) error {
 
 	url := fmt.Sprintf("%s/update/%s/%s/%v", APIUrl, metric.Type, name, value)
 
-	res, err := http.Post(url, "text/plain", nil)
+	_, err := restyClient.R().
+		SetHeader("Content-Type", "text/plain").
+		Post(url)
 	if err != nil {
-		return err
-	}
-
-	if err = res.Body.Close(); err != nil {
 		return err
 	}
 

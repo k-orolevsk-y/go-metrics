@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/go-resty/resty/v2"
 	"github.com/stretchr/testify/assert"
 	"net"
 	"net/http"
@@ -58,9 +59,11 @@ func Test_updateMetric(t *testing.T) {
 	server.Start()
 	defer server.Close()
 
+	restyClient := resty.New()
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err = updateMetric(tt.args.name, tt.args.metric)
+			err = updateMetric(tt.args.name, tt.args.metric, restyClient)
 			if tt.wantErr {
 				assert.ErrorIs(t, err, ErrorInvalidMetricValueType)
 			} else {

@@ -1,11 +1,15 @@
 package handlers
 
-import "net/http"
+import (
+	"github.com/gin-gonic/gin"
+	"net/http"
+)
 
-func BadRequest(w http.ResponseWriter, r *http.Request) {
-	handleBadRequest(w)
+func BadRequest(ctx *gin.Context) {
+	handleBadRequest(ctx)
 }
 
-func handleBadRequest(w http.ResponseWriter) {
-	w.WriteHeader(http.StatusBadRequest)
+func handleBadRequest(ctx *gin.Context) {
+	ctx.Status(http.StatusBadRequest)
+	ctx.Abort()
 }

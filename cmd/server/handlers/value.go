@@ -7,7 +7,7 @@ import (
 	"strconv"
 )
 
-func Update(storage stor.Storage) gin.HandlerFunc {
+func Value(storage stor.Storage) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		if !ValidateContentType(ctx, "text/plain") {
 			handleBadRequest(ctx)
@@ -22,29 +22,35 @@ func Update(storage stor.Storage) gin.HandlerFunc {
 			return
 		}
 
+		var response interface{}
 		storageType := ctx.Param("type")
+
 		if storageType == string(stor.GaugeType) {
-			value, err := strconv.ParseFloat(ctx.Param("value"), 64)
+			value, err := storage.GetGauge(id)
 			if err != nil {
-				handleBadRequest(ctx)
+				ctx.Status(http.StatusNotFound)
+				ctx.Abort()
+
 				return
 			}
 
-			storage.SetGauge(id, value)
+			response = strconv.FormatFloat(value, 'f', -1, 64)
 		} else if storageType == string(stor.CounterType) {
-			value, err := strconv.ParseInt(ctx.Param("value"), 0, 64)
+			value, err := storage.GetCounter(id)
 			if err != nil {
-				handleBadRequest(ctx)
+				ctx.Status(http.StatusNotFound)
+				ctx.Abort()
+
 				return
 			}
 
-			storage.AddCounter(id, value)
+			response = value
 		} else {
 			handleBadRequest(ctx)
 			return
 		}
 
-		ctx.Status(http.StatusOK)
+		ctx.String(http.StatusOK, "%v", response)
 		ctx.Abort()
 	}
 }
