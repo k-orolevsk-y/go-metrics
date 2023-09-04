@@ -72,6 +72,14 @@ func TestUpdate(t *testing.T) {
 			wantStatusCode: http.StatusOK,
 		},
 		{
+			name: "Negative gauge (without id)",
+			args: args{
+				httpMethod: http.MethodPost,
+				path:       "gauge",
+			},
+			wantStatusCode: http.StatusNotFound,
+		},
+		{
 			name: "Negative gauge (without params)",
 			args: args{
 				httpMethod: http.MethodPost,
@@ -103,6 +111,14 @@ func TestUpdate(t *testing.T) {
 				path:       "counter/test/123",
 			},
 			wantStatusCode: http.StatusOK,
+		},
+		{
+			name: "Negative counter (without id)",
+			args: args{
+				httpMethod: http.MethodPost,
+				path:       "counter",
+			},
+			wantStatusCode: http.StatusNotFound,
 		},
 		{
 			name: "Negative counter (without params)",

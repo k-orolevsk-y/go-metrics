@@ -52,7 +52,7 @@ func TestValidateContentType(t *testing.T) {
 		},
 	}
 
-	gin.SetMode(gin.TestMode)
+	gin.SetMode(gin.ReleaseMode)
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
