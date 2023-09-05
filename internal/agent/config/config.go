@@ -1,8 +1,8 @@
 package config
 
 import (
-	"github.com/k-orolevsk-y/go-metricts-tpl/cmd/agent/config/env"
-	"github.com/k-orolevsk-y/go-metricts-tpl/cmd/agent/config/flags"
+	"github.com/k-orolevsk-y/go-metricts-tpl/internal/agent/config/env"
+	"github.com/k-orolevsk-y/go-metricts-tpl/internal/agent/config/flags"
 )
 
 func Init() error {

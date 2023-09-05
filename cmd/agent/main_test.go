@@ -2,8 +2,8 @@ package main
 
 import (
 	"github.com/go-resty/resty/v2"
-	"github.com/k-orolevsk-y/go-metricts-tpl/cmd/agent/config"
-	"github.com/k-orolevsk-y/go-metricts-tpl/cmd/agent/metrics"
+	"github.com/k-orolevsk-y/go-metricts-tpl/internal/agent/config"
+	"github.com/k-orolevsk-y/go-metricts-tpl/internal/agent/metrics"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"net"

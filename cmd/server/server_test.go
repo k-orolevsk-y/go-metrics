@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	stor "github.com/k-orolevsk-y/go-metricts-tpl/cmd/server/storage"
+	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/storage"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"net/http"

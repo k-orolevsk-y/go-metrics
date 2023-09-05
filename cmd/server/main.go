@@ -2,9 +2,9 @@ package main
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/k-orolevsk-y/go-metricts-tpl/cmd/server/config"
-	"github.com/k-orolevsk-y/go-metricts-tpl/cmd/server/handlers"
-	"github.com/k-orolevsk-y/go-metricts-tpl/cmd/server/storage"
+	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/config"
+	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/handlers"
+	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/storage"
 )
 
 func main() {

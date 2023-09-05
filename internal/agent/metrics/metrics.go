@@ -2,7 +2,7 @@ package metrics
 
 import (
 	"errors"
-	"github.com/k-orolevsk-y/go-metricts-tpl/cmd/agent/config"
+	"github.com/k-orolevsk-y/go-metricts-tpl/internal/agent/config"
 	"math/rand"
 	"runtime"
 	"time"

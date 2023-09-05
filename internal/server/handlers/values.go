@@ -3,7 +3,7 @@ package handlers
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
-	stor "github.com/k-orolevsk-y/go-metricts-tpl/cmd/server/storage"
+	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/storage"
 	"io"
 	"net/http"
 	"strings"
