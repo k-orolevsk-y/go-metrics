@@ -4,8 +4,8 @@ import "github.com/caarlos0/env/v6"
 
 var Config struct {
 	Address        string `env:"ADDRESS"`
-	ReportInterval int    `json:"REPORT_INTERVAL"`
-	PollInterval   int    `json:"POLL_INTERVAL"`
+	ReportInterval int    `env:"REPORT_INTERVAL"`
+	PollInterval   int    `env:"POLL_INTERVAL"`
 }
 
 func Init() error {
