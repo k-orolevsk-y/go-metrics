@@ -1,23 +1,17 @@
 package config
 
 import (
-	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/config/env"
-	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/config/flags"
+	"flag"
+	"github.com/caarlos0/env/v6"
 )
 
-func Init() error {
-	if err := env.Init(); err != nil {
-		return err
-	}
-	flags.Init()
-
-	return nil
+var Data struct {
+	Address string `env:"ADDRESS"`
 }
 
-func GetAddress() string {
-	if env.Config.Address == "" {
-		return flags.Config.Address
-	}
+func Init() error {
+	flag.StringVar(&Data.Address, "a", "localhost:8080", "server address")
+	flag.Parse()
 
-	return env.Config.Address
+	return env.Parse(&Data)
 }

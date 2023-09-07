@@ -15,7 +15,7 @@ func main() {
 	storage := stor.NewMem()
 
 	r := setupRouter(&storage)
-	if err := r.Run(config.GetAddress()); err != nil {
+	if err := r.Run(config.Data.Address); err != nil {
 		panic(err)
 	}
 }

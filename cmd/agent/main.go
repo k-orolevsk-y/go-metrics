@@ -37,7 +37,7 @@ func main() {
 }
 
 func updateMetrics(metricsStore *metrics.RuntimeMetrics, restyClient *resty.Client) {
-	time.Sleep(time.Second * time.Duration(config.GetReportInterval()))
+	time.Sleep(time.Second * time.Duration(config.Data.ReportInterval))
 
 	for k, v := range metricsStore.Runtime {
 		if err := updateMetric(k, v, restyClient); err != nil {
@@ -75,7 +75,7 @@ func updateMetric(name string, metric metrics.Metric, restyClient *resty.Client)
 		return ErrorInvalidMetricValueType
 	}
 
-	url := fmt.Sprintf("http://%s/update/%s/%s/%v", config.GetAddress(), metric.Type, name, value)
+	url := fmt.Sprintf("http://%s/update/%s/%s/%v", config.Data.Address, metric.Type, name, value)
 
 	_, err := restyClient.R().
 		SetHeader("Content-Type", "text/plain").
