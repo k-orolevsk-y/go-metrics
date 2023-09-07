@@ -3,15 +3,14 @@ package handlers
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/storage"
 	"io"
 	"net/http"
 	"strings"
 )
 
-func Values(storage stor.Storage) gin.HandlerFunc {
+func (bh baseHandler) Values() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		values := storage.GetAll()
+		values := bh.storage.GetAll()
 
 		text := "<center><h1>Values</h1>"
 		for _, value := range values {

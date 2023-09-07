@@ -24,18 +24,20 @@ func setupRouter(storage stor.Storage) *gin.Engine {
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.New()
 
-	r.GET("/", handlers.Values(storage))
+	baseHandler := handlers.NewBase(storage)
 
-	r.GET("/value/:type/:name", handlers.Value(storage))
-	r.GET("/value/:type/:name/", handlers.Value(storage))
+	r.GET("/", baseHandler.Values())
+
+	r.GET("/value/:type/:name", baseHandler.Value())
+	r.GET("/value/:type/:name/", baseHandler.Value())
 
 	// Gin не считает ссылки /update/gauge/ подходящими под условие /update/:type/:name/:value,
 	// поэтому нужен такой костыль :(
-	r.POST("/update/:type", handlers.Update(storage))
-	r.POST("/update/:type/", handlers.Update(storage))
+	r.POST("/update/:type", baseHandler.Update())
+	r.POST("/update/:type/", baseHandler.Update())
 
-	r.POST("/update/:type/:name/:value", handlers.Update(storage))
-	r.POST("/update/:type/:name/:value/", handlers.Update(storage))
+	r.POST("/update/:type/:name/:value", baseHandler.Update())
+	r.POST("/update/:type/:name/:value/", baseHandler.Update())
 
 	r.NoRoute(handlers.BadRequest)
 

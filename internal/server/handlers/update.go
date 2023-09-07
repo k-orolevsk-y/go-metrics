@@ -7,7 +7,7 @@ import (
 	"strconv"
 )
 
-func Update(storage stor.Storage) gin.HandlerFunc {
+func (bh baseHandler) Update() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		if !ValidateContentType(ctx, "text/plain") {
 			handleBadRequest(ctx)
@@ -30,7 +30,7 @@ func Update(storage stor.Storage) gin.HandlerFunc {
 				return
 			}
 
-			storage.SetGauge(id, value)
+			bh.storage.SetGauge(id, value)
 		} else if storageType == string(stor.CounterType) {
 			value, err := strconv.ParseInt(ctx.Param("value"), 0, 64)
 			if err != nil {
@@ -38,7 +38,7 @@ func Update(storage stor.Storage) gin.HandlerFunc {
 				return
 			}
 
-			storage.AddCounter(id, value)
+			bh.storage.AddCounter(id, value)
 		} else {
 			handleBadRequest(ctx)
 			return
