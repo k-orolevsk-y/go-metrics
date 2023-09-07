@@ -1,4 +1,4 @@
-package main
+package metricsupdater
 
 import (
 	"github.com/go-resty/resty/v2"
@@ -9,6 +9,7 @@ import (
 	"net"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 )
 
@@ -16,7 +17,7 @@ func handlerServer(w http.ResponseWriter, _ *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func Test_updateMetric(t *testing.T) {
+func TestUpdater_updateMetric(t *testing.T) {
 	type args struct {
 		name   string
 		metric metrics.Metric
@@ -48,8 +49,9 @@ func Test_updateMetric(t *testing.T) {
 		},
 	}
 
-	err := config.Init()
-	require.NoError(t, err)
+	require.NoError(t, os.Setenv("POLL_INTERVAL", "1"))
+	require.NoError(t, os.Setenv("REPORT_INTERVAL", "1"))
+	require.NoError(t, config.Init())
 
 	l, err := net.Listen("tcp", ":8080")
 	require.NoError(t, err)
@@ -63,11 +65,12 @@ func Test_updateMetric(t *testing.T) {
 	server.Start()
 	defer server.Close()
 
-	restyClient := resty.New()
+	client := resty.New()
+	updater := New(client, nil)
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err = updateMetric(tt.args.name, tt.args.metric, restyClient)
+			err = updater.updateMetric(tt.args.name, tt.args.metric)
 			if tt.wantErr {
 				assert.ErrorIs(t, err, ErrorInvalidMetricValueType)
 			} else {
