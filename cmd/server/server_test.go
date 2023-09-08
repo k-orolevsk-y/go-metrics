@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"github.com/k-orolevsk-y/go-metricts-tpl/internal/agent/metrics"
 	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/storage"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -185,7 +184,7 @@ func TestUpdate(t *testing.T) {
 func TestValue(t *testing.T) {
 	type args struct {
 		name       string
-		metricType metrics.MetricType
+		metricType stor.MetricType
 		value      interface{}
 	}
 	type want struct {
@@ -201,7 +200,7 @@ func TestValue(t *testing.T) {
 			name: "Positive (gauge)",
 			args: args{
 				name:       "TestGauge",
-				metricType: metrics.GaugeType,
+				metricType: stor.GaugeType,
 				value:      10.5,
 			},
 			want: want{
@@ -213,7 +212,7 @@ func TestValue(t *testing.T) {
 			name: "Positive (counter)",
 			args: args{
 				name:       "TestCounter",
-				metricType: metrics.CounterType,
+				metricType: stor.CounterType,
 				value:      int64(10500),
 			},
 			want: want{
@@ -224,7 +223,7 @@ func TestValue(t *testing.T) {
 		{
 			name: "Negative (gauge)",
 			args: args{
-				metricType: metrics.GaugeType,
+				metricType: stor.GaugeType,
 			},
 			want: want{
 				body:       "",
@@ -234,7 +233,7 @@ func TestValue(t *testing.T) {
 		{
 			name: "Negative (counter)",
 			args: args{
-				metricType: metrics.CounterType,
+				metricType: stor.CounterType,
 			},
 			want: want{
 				body:       "",
@@ -244,7 +243,7 @@ func TestValue(t *testing.T) {
 		{
 			name: "Negative (invalid metric type)",
 			args: args{
-				metricType: metrics.MetricType("invalid"),
+				metricType: stor.MetricType("invalid"),
 			},
 			want: want{
 				body:       "",
@@ -260,9 +259,9 @@ func TestValue(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.args.name != "" {
 				switch tt.args.metricType {
-				case metrics.CounterType:
+				case stor.CounterType:
 					storage.AddCounter(tt.args.name, tt.args.value.(int64))
-				case metrics.GaugeType:
+				case stor.GaugeType:
 					storage.SetGauge(tt.args.name, tt.args.value.(float64))
 				}
 			}
