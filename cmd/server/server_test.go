@@ -2,9 +2,11 @@ package main
 
 import (
 	"fmt"
+	"github.com/k-orolevsk-y/go-metricts-tpl/internal/agent/metrics"
 	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/storage"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -176,6 +178,108 @@ func TestUpdate(t *testing.T) {
 			defer res.Body.Close()
 
 			assert.Equal(t, res.StatusCode, tt.wantStatusCode)
+		})
+	}
+}
+
+func TestValue(t *testing.T) {
+	type args struct {
+		name       string
+		metricType metrics.MetricType
+		value      interface{}
+	}
+	type want struct {
+		body       string
+		statusCode int
+	}
+	tests := []struct {
+		name string
+		args args
+		want want
+	}{
+		{
+			name: "Positive (gauge)",
+			args: args{
+				name:       "TestGauge",
+				metricType: metrics.GaugeType,
+				value:      10.5,
+			},
+			want: want{
+				body:       "10.5",
+				statusCode: http.StatusOK,
+			},
+		},
+		{
+			name: "Positive (counter)",
+			args: args{
+				name:       "TestCounter",
+				metricType: metrics.CounterType,
+				value:      int64(10500),
+			},
+			want: want{
+				body:       "10500",
+				statusCode: http.StatusOK,
+			},
+		},
+		{
+			name: "Negative (gauge)",
+			args: args{
+				metricType: metrics.GaugeType,
+			},
+			want: want{
+				body:       "",
+				statusCode: http.StatusNotFound,
+			},
+		},
+		{
+			name: "Negative (counter)",
+			args: args{
+				metricType: metrics.CounterType,
+			},
+			want: want{
+				body:       "",
+				statusCode: http.StatusNotFound,
+			},
+		},
+		{
+			name: "Negative (invalid metric type)",
+			args: args{
+				metricType: metrics.MetricType("invalid"),
+			},
+			want: want{
+				body:       "",
+				statusCode: http.StatusNotFound,
+			},
+		},
+	}
+
+	storage := stor.NewMem()
+	r := setupRouter(&storage)
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.args.name != "" {
+				switch tt.args.metricType {
+				case metrics.CounterType:
+					storage.AddCounter(tt.args.name, tt.args.value.(int64))
+				case metrics.GaugeType:
+					storage.SetGauge(tt.args.name, tt.args.value.(float64))
+				}
+			}
+
+			w := httptest.NewRecorder()
+			req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/value/%s/%s/", tt.args.metricType, tt.args.name), nil)
+
+			r.ServeHTTP(w, req)
+
+			res := w.Result()
+			defer res.Body.Close()
+
+			body, err := io.ReadAll(res.Body)
+			require.NoError(t, err)
+
+			assert.Equal(t, res.StatusCode, tt.want.statusCode)
+			assert.Equal(t, string(body), tt.want.body)
 		})
 	}
 }
