@@ -11,10 +11,13 @@ var Data struct {
 	PollInterval   int    `env:"POLL_INTERVAL"`
 }
 
-func Init() error {
+func Init() {
 	flag.StringVar(&Data.Address, "a", "localhost:8080", "server address")
 	flag.IntVar(&Data.ReportInterval, "r", 10, "report interval")
 	flag.IntVar(&Data.PollInterval, "p", 2, "poll interval")
+}
+
+func Parse() error {
 	flag.Parse()
 
 	return env.Parse(&Data)

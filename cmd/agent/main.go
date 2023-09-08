@@ -8,7 +8,8 @@ import (
 )
 
 func main() {
-	if err := config.Init(); err != nil {
+	config.Init()
+	if err := config.Parse(); err != nil {
 		panic(err)
 	}
 
