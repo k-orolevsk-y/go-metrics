@@ -13,20 +13,20 @@ func main() {
 		panic(err)
 	}
 
-	var store metrics.RuntimeMetrics
-	store.Init()
-
 	client := resty.New()
-	updater := metricsupdater.New(client, &store)
+	store := metrics.NewRuntimeMetrics()
 
-	for {
-		go func() {
+	updater := metricsupdater.New(client, store)
+	go func() {
+		for {
 			err := store.Update()
 			if err != nil {
 				panic(err)
 			}
-		}()
+		}
+	}()
 
+	for {
 		updater.UpdateMetrics()
 	}
 }

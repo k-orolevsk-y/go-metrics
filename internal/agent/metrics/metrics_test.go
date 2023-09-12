@@ -6,8 +6,7 @@ import (
 )
 
 func TestRuntimeMetrics(t *testing.T) {
-	var runtimeMetrics RuntimeMetrics
-	runtimeMetrics.Init()
+	runtimeMetrics := NewRuntimeMetrics()
 
 	assert.NoError(t, runtimeMetrics.Update())
 }

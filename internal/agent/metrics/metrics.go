@@ -29,10 +29,12 @@ type RuntimeMetrics struct {
 	RandomValue Metric
 }
 
-func (m *RuntimeMetrics) Init() {
-	m.Runtime = make(map[string]Metric)
-	m.PollCount = Metric{Type: CounterType, Value: int64(0)}
-	m.RandomValue = Metric{Type: GaugeType, Value: float64(0)}
+func NewRuntimeMetrics() *RuntimeMetrics {
+	return &RuntimeMetrics{
+		Runtime:     make(map[string]Metric),
+		PollCount:   Metric{Type: CounterType, Value: int64(0)},
+		RandomValue: Metric{Type: GaugeType, Value: float64(0)},
+	}
 }
 
 func (m *RuntimeMetrics) Update() error {
