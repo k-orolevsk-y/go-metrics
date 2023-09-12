@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	config.Init()
+	config.Load()
 	if err := config.Parse(); err != nil {
 		panic(err)
 	}
@@ -16,12 +16,12 @@ func main() {
 	storage := stor.NewMem()
 
 	r := setupRouter(&storage)
-	if err := r.Run(config.Data.Address); err != nil {
+	if err := r.Run(config.Config.Address); err != nil {
 		panic(err)
 	}
 }
 
-func setupRouter(storage stor.Storage) *gin.Engine {
+func setupRouter(storage handlers.Storage) *gin.Engine {
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.New()
 

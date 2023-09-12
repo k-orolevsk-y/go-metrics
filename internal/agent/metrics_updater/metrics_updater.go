@@ -28,7 +28,7 @@ func New(client *resty.Client, store *metrics.RuntimeMetrics) *Updater {
 }
 
 func (u Updater) UpdateMetrics() {
-	time.Sleep(time.Second * time.Duration(config.Data.ReportInterval))
+	time.Sleep(time.Second * time.Duration(config.Config.ReportInterval))
 
 	for k, v := range u.store.Runtime {
 		if err := u.updateMetric(k, v); err != nil {
@@ -51,7 +51,7 @@ func (u Updater) updateMetric(name string, metric metrics.Metric) error {
 		return err
 	}
 
-	url := fmt.Sprintf("http://%s/update/%s/%s/%v", config.Data.Address, metric.Type, name, value)
+	url := fmt.Sprintf("http://%s/update/%s/%s/%v", config.Config.Address, metric.Type, name, value)
 	_, err = u.client.R().
 		SetHeader("Content-Type", "text/plain").
 		Post(url)

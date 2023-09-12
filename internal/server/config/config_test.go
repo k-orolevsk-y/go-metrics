@@ -66,7 +66,7 @@ func TestConfig(t *testing.T) {
 		},
 	}
 
-	Init()
+	Load()
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -86,7 +86,7 @@ func TestConfig(t *testing.T) {
 			}
 
 			require.NoError(t, Parse())
-			assert.Equal(t, tt.result.Address, Data.Address)
+			assert.Equal(t, tt.result.Address, Config.Address)
 		})
 	}
 }

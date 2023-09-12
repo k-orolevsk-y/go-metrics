@@ -5,9 +5,17 @@ import (
 )
 
 type baseHandler struct {
-	storage stor.Storage
+	storage Storage
 }
 
-func NewBase(storage stor.Storage) *baseHandler {
+func NewBase(storage Storage) *baseHandler {
 	return &baseHandler{storage: storage}
+}
+
+type Storage interface {
+	GetGauge(name string) (float64, error)
+	SetGauge(name string, value float64)
+	GetCounter(name string) (int64, error)
+	AddCounter(name string, value int64)
+	GetAll() []stor.Value
 }

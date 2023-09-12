@@ -52,7 +52,7 @@ func TestUpdater_updateMetric(t *testing.T) {
 	require.NoError(t, os.Setenv("POLL_INTERVAL", "1"))
 	require.NoError(t, os.Setenv("REPORT_INTERVAL", "1"))
 
-	config.Init()
+	config.Load()
 	require.NoError(t, config.Parse())
 
 	l, err := net.Listen("tcp", ":8080")

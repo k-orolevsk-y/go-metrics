@@ -4,11 +4,11 @@ import (
 	"github.com/go-resty/resty/v2"
 	"github.com/k-orolevsk-y/go-metricts-tpl/internal/agent/config"
 	"github.com/k-orolevsk-y/go-metricts-tpl/internal/agent/metrics"
-	metricsupdater "github.com/k-orolevsk-y/go-metricts-tpl/internal/agent/metrics_updater"
+	"github.com/k-orolevsk-y/go-metricts-tpl/internal/agent/metrics_updater"
 )
 
 func main() {
-	config.Init()
+	config.Load()
 	if err := config.Parse(); err != nil {
 		panic(err)
 	}
