@@ -8,7 +8,6 @@ import (
 	"github.com/k-orolevsk-y/go-metricts-tpl/internal/agent/metrics"
 	"log"
 	"strconv"
-	"time"
 )
 
 var (
@@ -34,8 +33,6 @@ func New(client *resty.Client, store *metrics.RuntimeMetrics) *Updater {
 }
 
 func (u Updater) UpdateMetrics() {
-	time.Sleep(time.Second * time.Duration(config.Config.ReportInterval))
-
 	for k, v := range u.store.GetRuntime() {
 		if err := u.updateMetric(k, v); err != nil {
 			log.Printf("[Warning] %s - %v", k, err)

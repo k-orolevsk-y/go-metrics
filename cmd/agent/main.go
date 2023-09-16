@@ -5,6 +5,7 @@ import (
 	"github.com/k-orolevsk-y/go-metricts-tpl/internal/agent/config"
 	"github.com/k-orolevsk-y/go-metricts-tpl/internal/agent/metrics"
 	"github.com/k-orolevsk-y/go-metricts-tpl/internal/agent/metrics_updater"
+	"time"
 )
 
 func main() {
@@ -16,9 +17,10 @@ func main() {
 	client := resty.New()
 	store := metrics.NewRuntimeMetrics()
 
-	updater := metricsupdater.New(client, store)
 	go func() {
 		for {
+			time.Sleep(time.Second * time.Duration(config.Config.PollInterval))
+
 			err := store.Update()
 			if err != nil {
 				panic(err)
@@ -26,7 +28,9 @@ func main() {
 		}
 	}()
 
+	updater := metricsupdater.New(client, store)
 	for {
 		updater.UpdateMetrics()
+		time.Sleep(time.Second * time.Duration(config.Config.ReportInterval))
 	}
 }

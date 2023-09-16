@@ -2,10 +2,8 @@ package metrics
 
 import (
 	"errors"
-	"github.com/k-orolevsk-y/go-metricts-tpl/internal/agent/config"
 	"math/rand"
 	"runtime"
-	"time"
 )
 
 type (
@@ -38,8 +36,6 @@ func NewRuntimeMetrics() *RuntimeMetrics {
 }
 
 func (m *RuntimeMetrics) Update() error {
-	time.Sleep(time.Second * time.Duration(config.Config.PollInterval))
-
 	var runtimeMetrics runtime.MemStats
 	runtime.ReadMemStats(&runtimeMetrics)
 
