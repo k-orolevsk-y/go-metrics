@@ -23,7 +23,7 @@ func (bh baseHandler) Update() gin.HandlerFunc {
 		}
 
 		storageType := ctx.Param("type")
-		if storageType == string(stor.GaugeType) {
+		if storageType == string(storage.GaugeType) {
 			value, err := strconv.ParseFloat(ctx.Param("value"), 64)
 			if err != nil {
 				handleBadRequest(ctx)
@@ -31,7 +31,7 @@ func (bh baseHandler) Update() gin.HandlerFunc {
 			}
 
 			bh.storage.SetGauge(id, value)
-		} else if storageType == string(stor.CounterType) {
+		} else if storageType == string(storage.CounterType) {
 			value, err := strconv.ParseInt(ctx.Param("value"), 0, 64)
 			if err != nil {
 				handleBadRequest(ctx)

@@ -25,7 +25,7 @@ func (bh baseHandler) Value() gin.HandlerFunc {
 		var response interface{}
 		storageType := ctx.Param("type")
 
-		if storageType == string(stor.GaugeType) {
+		if storageType == string(storage.GaugeType) {
 			value, err := bh.storage.GetGauge(id)
 			if err != nil {
 				ctx.Status(http.StatusNotFound)
@@ -35,7 +35,7 @@ func (bh baseHandler) Value() gin.HandlerFunc {
 			}
 
 			response = strconv.FormatFloat(value, 'f', -1, 64)
-		} else if storageType == string(stor.CounterType) {
+		} else if storageType == string(storage.CounterType) {
 			value, err := bh.storage.GetCounter(id)
 			if err != nil {
 				ctx.Status(http.StatusNotFound)

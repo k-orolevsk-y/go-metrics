@@ -24,16 +24,16 @@ var (
 )
 
 type RuntimeMetrics struct {
-	Runtime     map[string]Metric
-	PollCount   Metric
-	RandomValue Metric
+	runtime     map[string]Metric
+	pollCount   Metric
+	randomValue Metric
 }
 
 func NewRuntimeMetrics() *RuntimeMetrics {
 	return &RuntimeMetrics{
-		Runtime:     make(map[string]Metric),
-		PollCount:   Metric{Type: CounterType, Value: int64(0)},
-		RandomValue: Metric{Type: GaugeType, Value: float64(0)},
+		runtime:     make(map[string]Metric),
+		pollCount:   Metric{Type: CounterType, Value: int64(0)},
+		randomValue: Metric{Type: GaugeType, Value: float64(0)},
 	}
 }
 
@@ -43,36 +43,48 @@ func (m *RuntimeMetrics) Update() error {
 	var runtimeMetrics runtime.MemStats
 	runtime.ReadMemStats(&runtimeMetrics)
 
-	m.Runtime["Alloc"] = Metric{Type: GaugeType, Value: float64(runtimeMetrics.Alloc)}
-	m.Runtime["BuckHashSys"] = Metric{Type: GaugeType, Value: float64(runtimeMetrics.BuckHashSys)}
-	m.Runtime["GCCPUFraction"] = Metric{Type: GaugeType, Value: runtimeMetrics.GCCPUFraction}
-	m.Runtime["HeapAlloc"] = Metric{Type: GaugeType, Value: float64(runtimeMetrics.HeapAlloc)}
-	m.Runtime["HeapIdle"] = Metric{Type: GaugeType, Value: float64(runtimeMetrics.HeapIdle)}
-	m.Runtime["HeapInuse"] = Metric{Type: GaugeType, Value: float64(runtimeMetrics.HeapInuse)}
-	m.Runtime["HeapObjects"] = Metric{Type: GaugeType, Value: float64(runtimeMetrics.HeapObjects)}
-	m.Runtime["HeapReleased"] = Metric{Type: GaugeType, Value: float64(runtimeMetrics.HeapReleased)}
-	m.Runtime["HeapSys"] = Metric{Type: GaugeType, Value: float64(runtimeMetrics.HeapSys)}
-	m.Runtime["LastGC"] = Metric{Type: GaugeType, Value: float64(runtimeMetrics.LastGC)}
-	m.Runtime["Lookups"] = Metric{Type: GaugeType, Value: float64(runtimeMetrics.Lookups)}
-	m.Runtime["MCacheInuse"] = Metric{Type: GaugeType, Value: float64(runtimeMetrics.MCacheInuse)}
-	m.Runtime["MCacheSys"] = Metric{Type: GaugeType, Value: float64(runtimeMetrics.MCacheSys)}
-	m.Runtime["MSpanInuse"] = Metric{Type: GaugeType, Value: float64(runtimeMetrics.MSpanInuse)}
-	m.Runtime["Mallocs"] = Metric{Type: GaugeType, Value: float64(runtimeMetrics.Mallocs)}
-	m.Runtime["NumForcedGC"] = Metric{Type: GaugeType, Value: float64(runtimeMetrics.NumForcedGC)}
-	m.Runtime["NumGC"] = Metric{Type: GaugeType, Value: float64(runtimeMetrics.NumGC)}
-	m.Runtime["OtherSys"] = Metric{Type: GaugeType, Value: float64(runtimeMetrics.OtherSys)}
-	m.Runtime["PauseTotalNs"] = Metric{Type: GaugeType, Value: float64(runtimeMetrics.PauseTotalNs)}
-	m.Runtime["StackInuse"] = Metric{Type: GaugeType, Value: float64(runtimeMetrics.StackInuse)}
-	m.Runtime["StackSys"] = Metric{Type: GaugeType, Value: float64(runtimeMetrics.StackSys)}
-	m.Runtime["Sys"] = Metric{Type: GaugeType, Value: float64(runtimeMetrics.Sys)}
-	m.Runtime["TotalAlloc"] = Metric{Type: GaugeType, Value: float64(runtimeMetrics.TotalAlloc)}
+	m.runtime["Alloc"] = Metric{Type: GaugeType, Value: float64(runtimeMetrics.Alloc)}
+	m.runtime["BuckHashSys"] = Metric{Type: GaugeType, Value: float64(runtimeMetrics.BuckHashSys)}
+	m.runtime["GCCPUFraction"] = Metric{Type: GaugeType, Value: runtimeMetrics.GCCPUFraction}
+	m.runtime["HeapAlloc"] = Metric{Type: GaugeType, Value: float64(runtimeMetrics.HeapAlloc)}
+	m.runtime["HeapIdle"] = Metric{Type: GaugeType, Value: float64(runtimeMetrics.HeapIdle)}
+	m.runtime["HeapInuse"] = Metric{Type: GaugeType, Value: float64(runtimeMetrics.HeapInuse)}
+	m.runtime["HeapObjects"] = Metric{Type: GaugeType, Value: float64(runtimeMetrics.HeapObjects)}
+	m.runtime["HeapReleased"] = Metric{Type: GaugeType, Value: float64(runtimeMetrics.HeapReleased)}
+	m.runtime["HeapSys"] = Metric{Type: GaugeType, Value: float64(runtimeMetrics.HeapSys)}
+	m.runtime["LastGC"] = Metric{Type: GaugeType, Value: float64(runtimeMetrics.LastGC)}
+	m.runtime["Lookups"] = Metric{Type: GaugeType, Value: float64(runtimeMetrics.Lookups)}
+	m.runtime["MCacheInuse"] = Metric{Type: GaugeType, Value: float64(runtimeMetrics.MCacheInuse)}
+	m.runtime["MCacheSys"] = Metric{Type: GaugeType, Value: float64(runtimeMetrics.MCacheSys)}
+	m.runtime["MSpanInuse"] = Metric{Type: GaugeType, Value: float64(runtimeMetrics.MSpanInuse)}
+	m.runtime["Mallocs"] = Metric{Type: GaugeType, Value: float64(runtimeMetrics.Mallocs)}
+	m.runtime["NumForcedGC"] = Metric{Type: GaugeType, Value: float64(runtimeMetrics.NumForcedGC)}
+	m.runtime["NumGC"] = Metric{Type: GaugeType, Value: float64(runtimeMetrics.NumGC)}
+	m.runtime["OtherSys"] = Metric{Type: GaugeType, Value: float64(runtimeMetrics.OtherSys)}
+	m.runtime["PauseTotalNs"] = Metric{Type: GaugeType, Value: float64(runtimeMetrics.PauseTotalNs)}
+	m.runtime["StackInuse"] = Metric{Type: GaugeType, Value: float64(runtimeMetrics.StackInuse)}
+	m.runtime["StackSys"] = Metric{Type: GaugeType, Value: float64(runtimeMetrics.StackSys)}
+	m.runtime["Sys"] = Metric{Type: GaugeType, Value: float64(runtimeMetrics.Sys)}
+	m.runtime["TotalAlloc"] = Metric{Type: GaugeType, Value: float64(runtimeMetrics.TotalAlloc)}
 
-	pollCount, ok := m.PollCount.Value.(int64)
+	pollCount, ok := m.pollCount.Value.(int64)
 	if !ok {
 		return ErrorInvalidPoolCount
 	}
-	m.PollCount.Value = pollCount + 1
+	m.pollCount.Value = pollCount + 1
 
-	m.RandomValue.Value = rand.Float64()
+	m.randomValue.Value = rand.Float64()
 	return nil
+}
+
+func (m *RuntimeMetrics) GetRuntime() map[string]Metric {
+	return m.runtime
+}
+
+func (m *RuntimeMetrics) GetPollCount() Metric {
+	return m.pollCount
+}
+
+func (m *RuntimeMetrics) GetRandomValue() Metric {
+	return m.randomValue
 }

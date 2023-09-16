@@ -13,9 +13,9 @@ func main() {
 		panic(err)
 	}
 
-	storage := stor.NewMem()
+	memStorage := storage.NewMem()
 
-	r := setupRouter(&storage)
+	r := setupRouter(&memStorage)
 	if err := r.Run(config.Config.Address); err != nil {
 		panic(err)
 	}

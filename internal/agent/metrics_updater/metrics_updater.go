@@ -17,7 +17,13 @@ var (
 
 type Updater struct {
 	client *resty.Client
-	store  *metrics.RuntimeMetrics
+	store  store
+}
+
+type store interface {
+	GetRuntime() map[string]metrics.Metric
+	GetPollCount() metrics.Metric
+	GetRandomValue() metrics.Metric
 }
 
 func New(client *resty.Client, store *metrics.RuntimeMetrics) *Updater {
@@ -30,17 +36,17 @@ func New(client *resty.Client, store *metrics.RuntimeMetrics) *Updater {
 func (u Updater) UpdateMetrics() {
 	time.Sleep(time.Second * time.Duration(config.Config.ReportInterval))
 
-	for k, v := range u.store.Runtime {
+	for k, v := range u.store.GetRuntime() {
 		if err := u.updateMetric(k, v); err != nil {
 			log.Printf("[Warning] %s - %v", k, err)
 		}
 	}
 
-	if err := u.updateMetric("PollCount", u.store.PollCount); err != nil {
+	if err := u.updateMetric("PollCount", u.store.GetPollCount()); err != nil {
 		log.Printf("[Warning] PollCount - %v", err)
 	}
 
-	if err := u.updateMetric("RandomValue", u.store.RandomValue); err != nil {
+	if err := u.updateMetric("RandomValue", u.store.GetRandomValue()); err != nil {
 		log.Printf("[Warning] RandomValue - %v", err)
 	}
 }
@@ -84,10 +90,4 @@ func (u Updater) parseMetric(metric metrics.Metric) (interface{}, error) {
 	}
 
 	return value, nil
-}
-
-type MetricUpdater interface {
-	UpdateMetrics()
-	updateMetric(name string, metric metrics.Metric) error
-	parseMetric(metric metrics.Metric) (interface{}, error)
 }

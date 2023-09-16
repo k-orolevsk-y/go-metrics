@@ -1,4 +1,4 @@
-package stor
+package storage
 
 import (
 	"errors"

@@ -163,8 +163,8 @@ func TestUpdate(t *testing.T) {
 		},
 	}
 
-	storage := stor.NewMem()
-	r := setupRouter(&storage)
+	memStorage := storage.NewMem()
+	r := setupRouter(&memStorage)
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -184,7 +184,7 @@ func TestUpdate(t *testing.T) {
 func TestValue(t *testing.T) {
 	type args struct {
 		name       string
-		metricType stor.MetricType
+		metricType storage.MetricType
 		value      interface{}
 	}
 	type want struct {
@@ -200,7 +200,7 @@ func TestValue(t *testing.T) {
 			name: "Positive (gauge)",
 			args: args{
 				name:       "TestGauge",
-				metricType: stor.GaugeType,
+				metricType: storage.GaugeType,
 				value:      10.5,
 			},
 			want: want{
@@ -212,7 +212,7 @@ func TestValue(t *testing.T) {
 			name: "Positive (counter)",
 			args: args{
 				name:       "TestCounter",
-				metricType: stor.CounterType,
+				metricType: storage.CounterType,
 				value:      int64(10500),
 			},
 			want: want{
@@ -223,7 +223,7 @@ func TestValue(t *testing.T) {
 		{
 			name: "Negative (gauge)",
 			args: args{
-				metricType: stor.GaugeType,
+				metricType: storage.GaugeType,
 			},
 			want: want{
 				body:       "",
@@ -233,7 +233,7 @@ func TestValue(t *testing.T) {
 		{
 			name: "Negative (counter)",
 			args: args{
-				metricType: stor.CounterType,
+				metricType: storage.CounterType,
 			},
 			want: want{
 				body:       "",
@@ -243,7 +243,7 @@ func TestValue(t *testing.T) {
 		{
 			name: "Negative (invalid metric type)",
 			args: args{
-				metricType: stor.MetricType("invalid"),
+				metricType: storage.MetricType("invalid"),
 			},
 			want: want{
 				body:       "",
@@ -252,17 +252,17 @@ func TestValue(t *testing.T) {
 		},
 	}
 
-	storage := stor.NewMem()
-	r := setupRouter(&storage)
+	memStorage := storage.NewMem()
+	r := setupRouter(&memStorage)
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.args.name != "" {
 				switch tt.args.metricType {
-				case stor.CounterType:
-					storage.AddCounter(tt.args.name, tt.args.value.(int64))
-				case stor.GaugeType:
-					storage.SetGauge(tt.args.name, tt.args.value.(float64))
+				case storage.CounterType:
+					memStorage.AddCounter(tt.args.name, tt.args.value.(int64))
+				case storage.GaugeType:
+					memStorage.SetGauge(tt.args.name, tt.args.value.(float64))
 				}
 			}
 
@@ -317,8 +317,8 @@ func TestValues(t *testing.T) {
 		},
 	}
 
-	storage := stor.NewMem()
-	r := setupRouter(&storage)
+	memStorage := storage.NewMem()
+	r := setupRouter(&memStorage)
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
