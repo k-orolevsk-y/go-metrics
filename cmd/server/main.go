@@ -21,7 +21,7 @@ func main() {
 	}
 }
 
-func setupRouter(storage handlers.Storage) *gin.Engine {
+func setupRouter(storage *storage.Mem) *gin.Engine {
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.New()
 
