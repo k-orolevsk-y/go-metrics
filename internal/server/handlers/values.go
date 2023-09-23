@@ -22,6 +22,7 @@ func (bh baseHandler) Values() gin.HandlerFunc {
 		ctx.Header("Content-Type", "text/html; charset=utf-8")
 
 		if _, err := io.Copy(ctx.Writer, strings.NewReader(text)); err != nil {
+			bh.log.Errorf("io.Copy() error: %s", err)
 			ctx.String(http.StatusInternalServerError, "%s", "Internal server error")
 		}
 

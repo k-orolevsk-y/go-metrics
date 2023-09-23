@@ -5,6 +5,7 @@ import (
 	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/storage"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap/zaptest"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -29,7 +30,7 @@ func TestBadRequest(t *testing.T) {
 		},
 	}
 
-	r := setupRouter(nil)
+	r := setupRouter(nil, zaptest.NewLogger(t).Sugar())
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -164,7 +165,7 @@ func TestUpdate(t *testing.T) {
 	}
 
 	memStorage := storage.NewMem()
-	r := setupRouter(&memStorage)
+	r := setupRouter(&memStorage, zaptest.NewLogger(t).Sugar())
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -253,7 +254,7 @@ func TestValue(t *testing.T) {
 	}
 
 	memStorage := storage.NewMem()
-	r := setupRouter(&memStorage)
+	r := setupRouter(&memStorage, zaptest.NewLogger(t).Sugar())
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -318,7 +319,7 @@ func TestValues(t *testing.T) {
 	}
 
 	memStorage := storage.NewMem()
-	r := setupRouter(&memStorage)
+	r := setupRouter(&memStorage, zaptest.NewLogger(t).Sugar())
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

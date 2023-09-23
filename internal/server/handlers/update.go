@@ -10,7 +10,7 @@ import (
 func (bh baseHandler) Update() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		if !ValidateContentType(ctx, "text/plain") {
-			handleBadRequest(ctx)
+			bh.handleBadRequest(ctx)
 			return
 		}
 
@@ -26,7 +26,7 @@ func (bh baseHandler) Update() gin.HandlerFunc {
 		if storageType == string(storage.GaugeType) {
 			value, err := strconv.ParseFloat(ctx.Param("value"), 64)
 			if err != nil {
-				handleBadRequest(ctx)
+				bh.handleBadRequest(ctx)
 				return
 			}
 
@@ -34,13 +34,13 @@ func (bh baseHandler) Update() gin.HandlerFunc {
 		} else if storageType == string(storage.CounterType) {
 			value, err := strconv.ParseInt(ctx.Param("value"), 0, 64)
 			if err != nil {
-				handleBadRequest(ctx)
+				bh.handleBadRequest(ctx)
 				return
 			}
 
 			bh.storage.AddCounter(id, value)
 		} else {
-			handleBadRequest(ctx)
+			bh.handleBadRequest(ctx)
 			return
 		}
 

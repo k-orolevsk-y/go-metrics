@@ -10,7 +10,7 @@ import (
 func (bh baseHandler) Value() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		if !ValidateContentType(ctx, "text/plain") {
-			handleBadRequest(ctx)
+			bh.handleBadRequest(ctx)
 			return
 		}
 
@@ -46,7 +46,7 @@ func (bh baseHandler) Value() gin.HandlerFunc {
 
 			response = value
 		} else {
-			handleBadRequest(ctx)
+			bh.handleBadRequest(ctx)
 			return
 		}
 

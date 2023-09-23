@@ -6,6 +6,7 @@ import (
 	"github.com/k-orolevsk-y/go-metricts-tpl/internal/agent/metrics"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/zap/zaptest"
 	"net"
 	"net/http"
 	"net/http/httptest"
@@ -68,7 +69,7 @@ func TestUpdater_updateMetric(t *testing.T) {
 	defer server.Close()
 
 	client := resty.New()
-	updater := New(client, nil)
+	updater := New(client, nil, zaptest.NewLogger(t).Sugar())
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

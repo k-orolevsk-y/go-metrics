@@ -6,7 +6,6 @@ import (
 	"github.com/go-resty/resty/v2"
 	"github.com/k-orolevsk-y/go-metricts-tpl/internal/agent/config"
 	"github.com/k-orolevsk-y/go-metricts-tpl/internal/agent/metrics"
-	"log"
 	"strconv"
 )
 
@@ -14,37 +13,45 @@ var (
 	ErrorInvalidMetricValueType = errors.New("invalid metric value type")
 )
 
-type Updater struct {
-	client *resty.Client
-	store  store
-}
+type (
+	Updater struct {
+		client *resty.Client
+		store  store
+		log    logger
+	}
 
-type store interface {
-	GetRuntime() map[string]metrics.Metric
-	GetPollCount() metrics.Metric
-	GetRandomValue() metrics.Metric
-}
+	logger interface {
+		Errorf(template string, args ...interface{})
+	}
 
-func New(client *resty.Client, store *metrics.RuntimeMetrics) *Updater {
+	store interface {
+		GetRuntime() map[string]metrics.Metric
+		GetPollCount() metrics.Metric
+		GetRandomValue() metrics.Metric
+	}
+)
+
+func New(client *resty.Client, store store, log logger) *Updater {
 	return &Updater{
 		client: client,
 		store:  store,
+		log:    log,
 	}
 }
 
 func (u Updater) UpdateMetrics() {
 	for k, v := range u.store.GetRuntime() {
 		if err := u.updateMetric(k, v); err != nil {
-			log.Printf("[Warning] %s - %v", k, err)
+			u.log.Errorf("Failed to update metric \"%s\": %s", k, err)
 		}
 	}
 
 	if err := u.updateMetric("PollCount", u.store.GetPollCount()); err != nil {
-		log.Printf("[Warning] PollCount - %v", err)
+		u.log.Errorf("Failed to update metric \"PollCount\": %s", err)
 	}
 
 	if err := u.updateMetric("RandomValue", u.store.GetRandomValue()); err != nil {
-		log.Printf("[Warning] RandomValue - %v", err)
+		u.log.Errorf("Failed to update metric \"PollCount\": %s", err)
 	}
 }
 

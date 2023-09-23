@@ -5,11 +5,11 @@ import (
 	"net/http"
 )
 
-func BadRequest(ctx *gin.Context) {
-	handleBadRequest(ctx)
+func (bh baseHandler) BadRequest(ctx *gin.Context) {
+	bh.handleBadRequest(ctx)
 }
 
-func handleBadRequest(ctx *gin.Context) {
+func (bh baseHandler) handleBadRequest(ctx *gin.Context) {
 	ctx.Status(http.StatusBadRequest)
 	ctx.Abort()
 }
