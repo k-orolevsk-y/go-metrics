@@ -33,6 +33,7 @@ func main() {
 
 func setupRouter(storage *storage.Mem, logger *zap.SugaredLogger) *gin.Engine {
 	gin.SetMode(gin.ReleaseMode)
+
 	r := gin.New()
 	r.Use(middlewares.Logger(logger))
 
@@ -43,13 +44,14 @@ func setupRouter(storage *storage.Mem, logger *zap.SugaredLogger) *gin.Engine {
 	r.GET("/value/:type/:name", baseHandler.Value())
 	r.GET("/value/:type/:name/", baseHandler.Value())
 
-	// Gin не считает ссылки /update/gauge/ подходящими под условие /update/:type/:name/:value,
-	// поэтому нужен такой костыль :(
-	r.POST("/update/:type", baseHandler.Update())
-	r.POST("/update/:type/", baseHandler.Update())
+	r.POST("/value", baseHandler.UpdateByBody())
+	r.POST("/value/", baseHandler.UpdateByBody())
 
-	r.POST("/update/:type/:name/:value", baseHandler.Update())
-	r.POST("/update/:type/:name/:value/", baseHandler.Update())
+	r.POST("/update/:type", baseHandler.UpdateByURI())
+	r.POST("/update/:type/", baseHandler.UpdateByURI())
+
+	r.POST("/update/:type/:name/:value", baseHandler.UpdateByURI())
+	r.POST("/update/:type/:name/:value/", baseHandler.UpdateByURI())
 
 	r.NoRoute(baseHandler.BadRequest)
 

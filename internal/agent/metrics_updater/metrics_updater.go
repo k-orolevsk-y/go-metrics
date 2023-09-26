@@ -6,7 +6,7 @@ import (
 	"github.com/go-resty/resty/v2"
 	"github.com/k-orolevsk-y/go-metricts-tpl/internal/agent/config"
 	"github.com/k-orolevsk-y/go-metricts-tpl/internal/agent/metrics"
-	"strconv"
+	"github.com/k-orolevsk-y/go-metricts-tpl/internal/models"
 )
 
 var (
@@ -56,14 +56,14 @@ func (u Updater) UpdateMetrics() {
 }
 
 func (u Updater) updateMetric(name string, metric metrics.Metric) error {
-	value, err := u.parseMetric(metric)
+	body, err := u.parseMetric(name, metric)
 	if err != nil {
 		return err
 	}
 
-	url := fmt.Sprintf("http://%s/update/%s/%s/%v", config.Config.Address, metric.Type, name, value)
+	url := fmt.Sprintf("http://%s/value", config.Config.Address)
 	_, err = u.client.R().
-		SetHeader("Content-Type", "text/plain").
+		SetBody(body).
 		Post(url)
 	if err != nil {
 		return err
@@ -72,26 +72,30 @@ func (u Updater) updateMetric(name string, metric metrics.Metric) error {
 	return nil
 }
 
-func (u Updater) parseMetric(metric metrics.Metric) (interface{}, error) {
-	var value interface{}
+func (u Updater) parseMetric(name string, metric metrics.Metric) (*models.Metrics, error) {
+	var obj models.Metrics
+	obj.ID = name
 
 	switch metric.Value.(type) {
 	case float64:
 		if metric.Type != metrics.GaugeType {
 			return nil, ErrorInvalidMetricValueType
 		}
+		value := metric.Value.(float64)
 
-		valueFloat64 := metric.Value.(float64)
-		value = strconv.FormatFloat(valueFloat64, 'f', 1, 64)
+		obj.MType = string(metrics.GaugeType)
+		obj.Value = &value
 	case int64:
 		if metric.Type != metrics.CounterType {
 			return nil, ErrorInvalidMetricValueType
 		}
+		delta := metric.Value.(int64)
 
-		value = metric.Value.(int64)
+		obj.MType = string(metrics.CounterType)
+		obj.Delta = &delta
 	default:
 		return nil, ErrorInvalidMetricValueType
 	}
 
-	return value, nil
+	return &obj, nil
 }

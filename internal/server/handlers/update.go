@@ -2,14 +2,15 @@ package handlers
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/k-orolevsk-y/go-metricts-tpl/internal/models"
 	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/storage"
 	"net/http"
 	"strconv"
 )
 
-func (bh baseHandler) Update() gin.HandlerFunc {
+func (bh baseHandler) UpdateByURI() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		if !ValidateContentType(ctx, "text/plain") {
+		if !bh.validateContentType(ctx, "text/plain", true) {
 			bh.handleBadRequest(ctx)
 			return
 		}
@@ -45,6 +46,48 @@ func (bh baseHandler) Update() gin.HandlerFunc {
 		}
 
 		ctx.Status(http.StatusOK)
+		ctx.Abort()
+	}
+}
+
+func (bh baseHandler) UpdateByBody() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		if !bh.validateContentType(ctx, "application/json", false) {
+			bh.handleBadRequest(ctx)
+			return
+		}
+
+		var obj models.Metrics
+		if response, statusCode, err := bh.validateAndShouldBindJSON(ctx, &obj); err != nil {
+			if statusCode == http.StatusInternalServerError {
+				bh.log.Errorf("Error decoding object request: %s (%T)", err, err)
+			}
+
+			if response == nil {
+				ctx.Status(statusCode)
+			} else {
+				ctx.JSON(statusCode, response)
+			}
+
+			ctx.Abort()
+
+			return
+		}
+
+		if obj.MType == string(storage.GaugeType) {
+			bh.storage.SetGauge(obj.ID, *obj.Value)
+		} else if obj.MType == string(storage.CounterType) {
+			bh.storage.AddCounter(obj.ID, *obj.Delta)
+
+			counter, err := bh.storage.GetCounter(obj.ID)
+			if err != nil {
+				bh.log.Errorf("Failed to get updated counter value: %s", err)
+			} else {
+				obj.Delta = &counter
+			}
+		}
+
+		ctx.JSON(http.StatusOK, obj)
 		ctx.Abort()
 	}
 }

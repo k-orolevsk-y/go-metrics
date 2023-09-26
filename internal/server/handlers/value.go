@@ -9,7 +9,7 @@ import (
 
 func (bh baseHandler) Value() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		if !ValidateContentType(ctx, "text/plain") {
+		if !bh.validateContentType(ctx, "text/plain", true) {
 			bh.handleBadRequest(ctx)
 			return
 		}
