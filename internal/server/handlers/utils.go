@@ -41,19 +41,19 @@ func (bh baseHandler) validateAndShouldBindJSON(ctx *gin.Context, obj any) (*mod
 		}
 
 		var validationErrors validator.ValidationErrors
-		if ok := errors.As(err, &validationErrors); ok {
-			for _, fErr := range validationErrors {
-				var errResponse string
-				if fErr.Param() == "" {
-					errResponse = fErr.Tag()
-				} else {
-					errResponse = fmt.Sprintf("%s=%s", fErr.Tag(), fErr.Param())
-				}
+		if ok := errors.As(err, &validationErrors); ok && len(validationErrors) > 0 {
+			fErr := validationErrors[0]
 
-				return &models.ErrorResponse{
-					Error: fmt.Sprintf("Field validation for \"%s\" failed on the '%s' tag.", fErr.Field(), errResponse),
-				}, http.StatusBadRequest, err
+			var errResponse string
+			if fErr.Param() == "" {
+				errResponse = fErr.Tag()
+			} else {
+				errResponse = fmt.Sprintf("%s=%s", fErr.Tag(), fErr.Param())
 			}
+
+			return &models.ErrorResponse{
+				Error: fmt.Sprintf("Field validation for \"%s\" failed on the '%s' tag.", fErr.Field(), errResponse),
+			}, http.StatusBadRequest, err
 		}
 
 		return nil, http.StatusInternalServerError, err
