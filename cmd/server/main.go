@@ -41,11 +41,14 @@ func setupRouter(storage *storage.Mem, logger *zap.SugaredLogger) *gin.Engine {
 
 	r.GET("/", baseHandler.Values())
 
-	r.GET("/value/:type/:name", baseHandler.Value())
-	r.GET("/value/:type/:name/", baseHandler.Value())
+	r.POST("/value", baseHandler.ValueByBody())
+	r.POST("/value/", baseHandler.ValueByBody())
 
-	r.POST("/value", baseHandler.UpdateByBody())
-	r.POST("/value/", baseHandler.UpdateByBody())
+	r.GET("/value/:type/:name", baseHandler.ValueByURI())
+	r.GET("/value/:type/:name/", baseHandler.ValueByURI())
+
+	r.POST("/update", baseHandler.UpdateByBody())
+	r.POST("/update/", baseHandler.UpdateByBody())
 
 	r.POST("/update/:type", baseHandler.UpdateByURI())
 	r.POST("/update/:type/", baseHandler.UpdateByURI())

@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"github.com/gin-gonic/gin"
-	models2 "github.com/k-orolevsk-y/go-metricts-tpl/internal/models"
 	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/models"
 	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/storage"
 	"github.com/stretchr/testify/assert"
@@ -105,8 +104,8 @@ func getRandomInt64() *int64 {
 
 func TestValidateAndShouldBindJSON(t *testing.T) {
 	type args struct {
-		obj         models2.Metrics
-		body        models2.Metrics
+		obj         models.MetricsUpdate
+		body        models.MetricsUpdate
 		withoutBody bool
 	}
 	type want struct {
@@ -122,8 +121,8 @@ func TestValidateAndShouldBindJSON(t *testing.T) {
 		{
 			name: "Positive gauge",
 			args: args{
-				obj: models2.Metrics{},
-				body: models2.Metrics{
+				obj: models.MetricsUpdate{},
+				body: models.MetricsUpdate{
 					ID:    "TestGauge",
 					MType: string(storage.GaugeType),
 					Value: getRandomFloat64(),
@@ -138,8 +137,8 @@ func TestValidateAndShouldBindJSON(t *testing.T) {
 		{
 			name: "Positive counter",
 			args: args{
-				obj: models2.Metrics{},
-				body: models2.Metrics{
+				obj: models.MetricsUpdate{},
+				body: models.MetricsUpdate{
 					ID:    "TestCounter",
 					MType: string(storage.CounterType),
 					Delta: getRandomInt64(),
@@ -154,8 +153,8 @@ func TestValidateAndShouldBindJSON(t *testing.T) {
 		{
 			name: "Negative without params",
 			args: args{
-				obj:  models2.Metrics{},
-				body: models2.Metrics{},
+				obj:  models.MetricsUpdate{},
+				body: models.MetricsUpdate{},
 			},
 			want: want{
 				errorResponse: &models.ErrorResponse{Error: "Field validation for \"ID\" failed on the 'required' tag."},
@@ -166,8 +165,8 @@ func TestValidateAndShouldBindJSON(t *testing.T) {
 		{
 			name: "Negative invalid type",
 			args: args{
-				obj: models2.Metrics{},
-				body: models2.Metrics{
+				obj: models.MetricsUpdate{},
+				body: models.MetricsUpdate{
 					ID:    "NTest",
 					MType: "heh",
 				},
@@ -181,8 +180,8 @@ func TestValidateAndShouldBindJSON(t *testing.T) {
 		{
 			name: "Negative without value (gauge)",
 			args: args{
-				obj: models2.Metrics{},
-				body: models2.Metrics{
+				obj: models.MetricsUpdate{},
+				body: models.MetricsUpdate{
 					ID:    "NTest",
 					MType: string(storage.GaugeType),
 					Delta: getRandomInt64(),
@@ -197,8 +196,8 @@ func TestValidateAndShouldBindJSON(t *testing.T) {
 		{
 			name: "Negative without value (counter)",
 			args: args{
-				obj: models2.Metrics{},
-				body: models2.Metrics{
+				obj: models.MetricsUpdate{},
+				body: models.MetricsUpdate{
 					ID:    "NTest",
 					MType: string(storage.CounterType),
 					Value: getRandomFloat64(),

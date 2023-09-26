@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/k-orolevsk-y/go-metricts-tpl/internal/models"
+	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/models"
 	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/storage"
 	"net/http"
 	"strconv"
@@ -57,7 +57,7 @@ func (bh baseHandler) UpdateByBody() gin.HandlerFunc {
 			return
 		}
 
-		var obj models.Metrics
+		var obj models.MetricsUpdate
 		if response, statusCode, err := bh.validateAndShouldBindJSON(ctx, &obj); err != nil {
 			if statusCode == http.StatusInternalServerError {
 				bh.log.Errorf("Error decoding object request: %s (%T)", err, err)

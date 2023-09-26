@@ -21,7 +21,7 @@ func (bh baseHandler) validateContentType(ctx *gin.Context, contentType string, 
 }
 
 func (bh baseHandler) validateAndShouldBindJSON(ctx *gin.Context, obj any) (*models.ErrorResponse, int, error) {
-	if err := ctx.ShouldBindJSON(&obj); err != nil {
+	if err := ctx.ShouldBindJSON(obj); err != nil {
 		if errors.Is(err, io.EOF) {
 			return &models.ErrorResponse{Error: "Request body not provided."}, http.StatusBadRequest, err
 		}

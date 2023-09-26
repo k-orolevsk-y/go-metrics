@@ -38,7 +38,7 @@ func main() {
 
 	updater := metricsupdater.New(client, store, sugarLogger)
 	for {
-		updater.UpdateMetrics()
 		time.Sleep(time.Second * time.Duration(config.Config.ReportInterval))
+		updater.UpdateMetrics()
 	}
 }

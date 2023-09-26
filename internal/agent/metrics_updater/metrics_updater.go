@@ -6,7 +6,7 @@ import (
 	"github.com/go-resty/resty/v2"
 	"github.com/k-orolevsk-y/go-metricts-tpl/internal/agent/config"
 	"github.com/k-orolevsk-y/go-metricts-tpl/internal/agent/metrics"
-	"github.com/k-orolevsk-y/go-metricts-tpl/internal/models"
+	"github.com/k-orolevsk-y/go-metricts-tpl/internal/agent/models"
 )
 
 var (
@@ -61,7 +61,7 @@ func (u Updater) updateMetric(name string, metric metrics.Metric) error {
 		return err
 	}
 
-	url := fmt.Sprintf("http://%s/value", config.Config.Address)
+	url := fmt.Sprintf("http://%s/update", config.Config.Address)
 	_, err = u.client.R().
 		SetBody(body).
 		Post(url)
