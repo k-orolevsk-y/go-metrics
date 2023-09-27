@@ -14,7 +14,12 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	defer logger.Sync()
+
+	defer func(logger *zap.Logger) {
+		if err = logger.Sync(); err != nil {
+			panic(err)
+		}
+	}(logger)
 
 	sugarLogger := logger.Sugar()
 
