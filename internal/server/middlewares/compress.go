@@ -36,6 +36,4 @@ func (bm baseMiddleware) Compress(ctx *gin.Context) {
 	ctx.Writer = &gzipWriter{ResponseWriter: ctx.Writer, writer: gz}
 
 	ctx.Next()
-
-	return
 }
