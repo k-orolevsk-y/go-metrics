@@ -14,9 +14,9 @@ type Mem struct {
 type MetricType string
 
 type Value struct {
-	Name  string
-	Type  MetricType
-	Value interface{}
+	Name  string      `json:"n"`
+	Type  MetricType  `json:"t"`
+	Value interface{} `json:"v"`
 }
 
 var (

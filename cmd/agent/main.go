@@ -25,7 +25,7 @@ func main() {
 
 	config.Load()
 	if err = config.Parse(); err != nil {
-		sugarLogger.Panicf("Panic loading config: %s", err)
+		sugarLogger.Panicf("Failed loading config: %s", err)
 	}
 
 	client := resty.New()
