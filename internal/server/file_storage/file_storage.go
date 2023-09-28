@@ -5,6 +5,7 @@ import (
 	"errors"
 	"github.com/gin-gonic/gin"
 	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/config"
+	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/models"
 	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/storage"
 	"io"
 	"os"
@@ -31,7 +32,7 @@ type (
 	store interface {
 		SetGauge(name string, value float64)
 		AddCounter(name string, value int64)
-		GetAll() []storage.Value
+		GetAll() []models.MetricsValue
 	}
 )
 
@@ -57,7 +58,11 @@ func (u *Storage) Close() error {
 }
 
 func (u *Storage) Restore() error {
-	var metrics []storage.Value
+	if err := u.file.Sync(); err != nil {
+		return err
+	}
+
+	var metrics []models.MetricsValue
 	if err := u.decoder.Decode(&metrics); err != nil {
 		if errors.Is(err, io.EOF) {
 			return nil
@@ -67,11 +72,11 @@ func (u *Storage) Restore() error {
 
 	var errs int
 	for _, metric := range metrics {
-		switch metric.Type {
-		case storage.GaugeType:
-			u.storage.SetGauge(metric.Name, metric.Value.(float64))
-		case storage.CounterType:
-			u.storage.AddCounter(metric.Name, int64(metric.Value.(float64)))
+		switch metric.MType {
+		case string(storage.GaugeType):
+			u.storage.SetGauge(metric.ID, *metric.Value)
+		case string(storage.CounterType):
+			u.storage.AddCounter(metric.ID, *metric.Delta)
 		default:
 			errs++
 			u.log.Errorf("The metric couldn't be restored, it has an unknown type: %+v", metrics)
@@ -101,6 +106,10 @@ func (u *Storage) Start() {
 }
 
 func (u *Storage) update() (int, error) {
+	if err := u.file.Truncate(0); err != nil {
+		return 0, err
+	}
+
 	if _, err := u.file.Seek(0, 0); err != nil {
 		return 0, err
 	}

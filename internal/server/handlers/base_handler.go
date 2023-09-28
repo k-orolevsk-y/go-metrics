@@ -1,6 +1,8 @@
 package handlers
 
-import "github.com/k-orolevsk-y/go-metricts-tpl/internal/server/storage"
+import (
+	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/models"
+)
 
 type (
 	baseHandler struct {
@@ -18,7 +20,7 @@ type (
 		SetGauge(name string, value float64)
 		GetCounter(name string) (int64, error)
 		AddCounter(name string, value int64)
-		GetAll() []storage.Value
+		GetAll() []models.MetricsValue
 	}
 )
 

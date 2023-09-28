@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/storage"
 	"io"
 	"net/http"
 	"strings"
@@ -14,7 +15,11 @@ func (bh baseHandler) Values() gin.HandlerFunc {
 
 		text := "<center><h1>Values</h1>"
 		for _, value := range values {
-			text += fmt.Sprintf("<p>%s: %s - %v</p>", value.Type, value.Name, value.Value)
+			if value.MType == string(storage.GaugeType) {
+				text += fmt.Sprintf("<p>%s: %s - %d</p>", value.MType, value.ID, value.Value)
+			} else if value.MType == string(storage.CounterType) {
+				text += fmt.Sprintf("<p>%s: %s - %d</p>", value.MType, value.ID, value.Delta)
+			}
 		}
 		text += "</center>"
 

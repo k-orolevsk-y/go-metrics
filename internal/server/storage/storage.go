@@ -2,7 +2,7 @@ package storage
 
 import (
 	"errors"
-	"strconv"
+	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/models"
 	"strings"
 )
 
@@ -12,12 +12,6 @@ type Mem struct {
 }
 
 type MetricType string
-
-type Value struct {
-	Name  string      `json:"n"`
-	Type  MetricType  `json:"t"`
-	Value interface{} `json:"v"`
-}
 
 var (
 	GaugeType   MetricType = "gauge"
@@ -71,22 +65,22 @@ func (m *Mem) AddCounter(name string, value int64) {
 	}
 }
 
-func (m *Mem) GetAll() []Value {
-	var values []Value
+func (m *Mem) GetAll() []models.MetricsValue {
+	var values []models.MetricsValue
 
 	for k, v := range m.gauge {
-		values = append(values, Value{
-			Name:  k,
-			Type:  GaugeType,
-			Value: strconv.FormatFloat(v, 'f', 1, 64),
+		values = append(values, models.MetricsValue{
+			ID:    k,
+			MType: string(GaugeType),
+			Value: &v,
 		})
 	}
 
 	for k, v := range m.counter {
-		values = append(values, Value{
-			Name:  k,
-			Type:  CounterType,
-			Value: v,
+		values = append(values, models.MetricsValue{
+			ID:    k,
+			MType: string(CounterType),
+			Delta: &v,
 		})
 	}
 
