@@ -40,9 +40,12 @@ func setupRouter(storage *storage.Mem, logger *zap.SugaredLogger) *gin.Engine {
 	gin.SetMode(gin.ReleaseMode)
 
 	r := gin.New()
-	r.Use(middlewares.Logger(logger))
 
 	baseHandler := handlers.NewBase(storage, logger)
+	baseMiddleware := middlewares.NewBase(logger)
+
+	r.Use(baseMiddleware.Compress)
+	r.Use(baseMiddleware.Logger)
 
 	r.GET("/", baseHandler.Values())
 
