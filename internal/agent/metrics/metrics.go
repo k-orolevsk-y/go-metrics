@@ -41,7 +41,9 @@ func (m *RuntimeMetrics) Update() error {
 
 	m.runtime["Alloc"] = Metric{Type: GaugeType, Value: float64(runtimeMetrics.Alloc)}
 	m.runtime["BuckHashSys"] = Metric{Type: GaugeType, Value: float64(runtimeMetrics.BuckHashSys)}
+	m.runtime["Frees"] = Metric{Type: GaugeType, Value: float64(runtimeMetrics.Frees)}
 	m.runtime["GCCPUFraction"] = Metric{Type: GaugeType, Value: runtimeMetrics.GCCPUFraction}
+	m.runtime["GCSys"] = Metric{Type: GaugeType, Value: float64(runtimeMetrics.GCSys)}
 	m.runtime["HeapAlloc"] = Metric{Type: GaugeType, Value: float64(runtimeMetrics.HeapAlloc)}
 	m.runtime["HeapIdle"] = Metric{Type: GaugeType, Value: float64(runtimeMetrics.HeapIdle)}
 	m.runtime["HeapInuse"] = Metric{Type: GaugeType, Value: float64(runtimeMetrics.HeapInuse)}
@@ -53,7 +55,9 @@ func (m *RuntimeMetrics) Update() error {
 	m.runtime["MCacheInuse"] = Metric{Type: GaugeType, Value: float64(runtimeMetrics.MCacheInuse)}
 	m.runtime["MCacheSys"] = Metric{Type: GaugeType, Value: float64(runtimeMetrics.MCacheSys)}
 	m.runtime["MSpanInuse"] = Metric{Type: GaugeType, Value: float64(runtimeMetrics.MSpanInuse)}
+	m.runtime["MSpanSys"] = Metric{Type: GaugeType, Value: float64(runtimeMetrics.MSpanSys)}
 	m.runtime["Mallocs"] = Metric{Type: GaugeType, Value: float64(runtimeMetrics.Mallocs)}
+	m.runtime["NextGC"] = Metric{Type: GaugeType, Value: float64(runtimeMetrics.NextGC)}
 	m.runtime["NumForcedGC"] = Metric{Type: GaugeType, Value: float64(runtimeMetrics.NumForcedGC)}
 	m.runtime["NumGC"] = Metric{Type: GaugeType, Value: float64(runtimeMetrics.NumGC)}
 	m.runtime["OtherSys"] = Metric{Type: GaugeType, Value: float64(runtimeMetrics.OtherSys)}
