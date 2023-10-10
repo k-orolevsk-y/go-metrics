@@ -5,23 +5,21 @@ import (
 	"github.com/k-orolevsk-y/go-metricts-tpl/internal/agent/config"
 	"github.com/k-orolevsk-y/go-metricts-tpl/internal/agent/metrics"
 	"github.com/k-orolevsk-y/go-metricts-tpl/internal/agent/metrics_updater"
-	"go.uber.org/zap"
+	"github.com/k-orolevsk-y/go-metricts-tpl/pkg/logger"
 	"time"
 )
 
 func main() {
-	logger, err := zap.NewDevelopment()
+	sugarLogger, err := logger.New()
 	if err != nil {
 		panic(err)
 	}
 
-	defer func(logger *zap.Logger) {
-		if err = logger.Sync(); err != nil {
+	defer func(log logger.Logger) {
+		if err = log.Sync(); err != nil {
 			panic(err)
 		}
-	}(logger)
-
-	sugarLogger := logger.Sugar()
+	}(sugarLogger)
 
 	config.Load()
 	if err = config.Parse(); err != nil {

@@ -7,6 +7,7 @@ import (
 	"github.com/k-orolevsk-y/go-metricts-tpl/internal/agent/config"
 	"github.com/k-orolevsk-y/go-metricts-tpl/internal/agent/metrics"
 	"github.com/k-orolevsk-y/go-metricts-tpl/internal/agent/models"
+	"github.com/k-orolevsk-y/go-metricts-tpl/pkg/logger"
 )
 
 var (
@@ -17,11 +18,7 @@ type (
 	Updater struct {
 		client *resty.Client
 		store  store
-		log    logger
-	}
-
-	logger interface {
-		Errorf(template string, args ...interface{})
+		log    logger.Logger
 	}
 
 	store interface {
@@ -31,7 +28,7 @@ type (
 	}
 )
 
-func New(client *resty.Client, store store, log logger) *Updater {
+func New(client *resty.Client, store store, log logger.Logger) *Updater {
 	return &Updater{
 		client: client,
 		store:  store,

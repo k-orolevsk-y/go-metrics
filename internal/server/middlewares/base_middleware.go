@@ -1,17 +1,14 @@
 package middlewares
 
+import "github.com/k-orolevsk-y/go-metricts-tpl/pkg/logger"
+
 type (
 	baseMiddleware struct {
-		log logger
-	}
-
-	logger interface {
-		Infof(template string, args ...interface{})
-		Errorf(template string, args ...interface{})
+		log logger.Logger
 	}
 )
 
-func NewBase(log logger) *baseMiddleware {
+func NewBase(log logger.Logger) *baseMiddleware {
 	return &baseMiddleware{
 		log: log,
 	}

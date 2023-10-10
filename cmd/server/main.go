@@ -7,16 +7,14 @@ import (
 	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/handlers"
 	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/middlewares"
 	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/storage"
-	"go.uber.org/zap"
+	"github.com/k-orolevsk-y/go-metricts-tpl/pkg/logger"
 )
 
 func main() {
-	logger, err := zap.NewDevelopment()
+	sugarLogger, err := logger.New()
 	if err != nil {
 		panic(err)
 	}
-
-	sugarLogger := logger.Sugar()
 
 	config.Load()
 	if err = config.Parse(); err != nil {
@@ -38,8 +36,8 @@ func main() {
 		fileStorage.Start()
 	}
 
-	defer func(logger *zap.Logger, fileStorage *filestorage.Storage) {
-		if err = logger.Sync(); err != nil {
+	defer func(log logger.Logger, fileStorage *filestorage.Storage) {
+		if err = log.Sync(); err != nil {
 			panic(err)
 		}
 		if fileStorage != nil {
@@ -47,7 +45,7 @@ func main() {
 				panic(err)
 			}
 		}
-	}(logger, fileStorage)
+	}(sugarLogger, fileStorage)
 
 	r := setupRouter(&memStorage, fileStorage, sugarLogger)
 	if err = r.Run(config.Config.Address); err != nil {
@@ -55,13 +53,13 @@ func main() {
 	}
 }
 
-func setupRouter(storage *storage.Mem, fileStorage *filestorage.Storage, logger *zap.SugaredLogger) *gin.Engine {
+func setupRouter(storage *storage.Mem, fileStorage *filestorage.Storage, log logger.Logger) *gin.Engine {
 	gin.SetMode(gin.ReleaseMode)
 
 	r := gin.New()
 
-	baseHandler := handlers.NewBase(storage, logger)
-	baseMiddleware := middlewares.NewBase(logger)
+	baseHandler := handlers.NewBase(storage, log)
+	baseMiddleware := middlewares.NewBase(log)
 
 	r.Use(baseMiddleware.Compress)
 	r.Use(baseMiddleware.Logger)

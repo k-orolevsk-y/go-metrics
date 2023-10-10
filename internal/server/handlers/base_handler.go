@@ -2,17 +2,13 @@ package handlers
 
 import (
 	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/models"
+	"github.com/k-orolevsk-y/go-metricts-tpl/pkg/logger"
 )
 
 type (
 	baseHandler struct {
 		storage stor
-		log     logger
-	}
-
-	logger interface {
-		Infof(template string, args ...interface{})
-		Errorf(template string, args ...interface{})
+		log     logger.Logger
 	}
 
 	stor interface {
@@ -24,6 +20,6 @@ type (
 	}
 )
 
-func NewBase(storage stor, log logger) *baseHandler {
+func NewBase(storage stor, log logger.Logger) *baseHandler {
 	return &baseHandler{storage: storage, log: log}
 }
