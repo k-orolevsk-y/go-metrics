@@ -1,12 +1,14 @@
 package main
 
 import (
+	"database/sql"
 	"github.com/gin-gonic/gin"
 	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/config"
 	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/file_storage"
 	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/handlers"
 	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/middlewares"
 	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/storage"
+	"github.com/k-orolevsk-y/go-metricts-tpl/pkg/database"
 	"github.com/k-orolevsk-y/go-metricts-tpl/pkg/logger"
 )
 
@@ -19,6 +21,11 @@ func main() {
 	config.Load()
 	if err = config.Parse(); err != nil {
 		sugarLogger.Panicf("Failed loading config: %s", err)
+	}
+
+	db, err := database.New()
+	if err != nil {
+		sugarLogger.Panicf("Failed connect database: %s", err)
 	}
 
 	memStorage := storage.NewMem()
@@ -36,7 +43,7 @@ func main() {
 		fileStorage.Start()
 	}
 
-	defer func(log logger.Logger, fileStorage *filestorage.Storage) {
+	defer func(log logger.Logger, fileStorage *filestorage.Storage, db *sql.DB) {
 		if err = log.Sync(); err != nil {
 			panic(err)
 		}
@@ -45,20 +52,23 @@ func main() {
 				panic(err)
 			}
 		}
-	}(sugarLogger, fileStorage)
+		if err = db.Close(); err != nil {
+			panic(err)
+		}
+	}(sugarLogger, fileStorage, db)
 
-	r := setupRouter(&memStorage, fileStorage, sugarLogger)
+	r := setupRouter(&memStorage, fileStorage, db, sugarLogger)
 	if err = r.Run(config.Config.Address); err != nil {
 		sugarLogger.Panicf("Failed start server: %s", err)
 	}
 }
 
-func setupRouter(storage *storage.Mem, fileStorage *filestorage.Storage, log logger.Logger) *gin.Engine {
+func setupRouter(storage *storage.Mem, fileStorage *filestorage.Storage, db *sql.DB, log logger.Logger) *gin.Engine {
 	gin.SetMode(gin.ReleaseMode)
 
 	r := gin.New()
 
-	baseHandler := handlers.NewBase(storage, log)
+	baseHandler := handlers.NewBase(storage, db, log)
 	baseMiddleware := middlewares.NewBase(log)
 
 	r.Use(baseMiddleware.Compress)
@@ -69,6 +79,8 @@ func setupRouter(storage *storage.Mem, fileStorage *filestorage.Storage, log log
 	}
 
 	r.GET("/", baseHandler.Values())
+
+	r.GET("/ping", baseHandler.Ping())
 
 	r.POST("/value", baseHandler.ValueByBody())
 	r.POST("/value/", baseHandler.ValueByBody())

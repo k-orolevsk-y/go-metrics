@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"database/sql"
 	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/models"
 	"github.com/k-orolevsk-y/go-metricts-tpl/pkg/logger"
 )
@@ -8,6 +9,7 @@ import (
 type (
 	baseHandler struct {
 		storage stor
+		db      *sql.DB
 		log     logger.Logger
 	}
 
@@ -20,6 +22,6 @@ type (
 	}
 )
 
-func NewBase(storage stor, log logger.Logger) *baseHandler {
-	return &baseHandler{storage: storage, log: log}
+func NewBase(storage stor, db *sql.DB, log logger.Logger) *baseHandler {
+	return &baseHandler{storage: storage, db: db, log: log}
 }
