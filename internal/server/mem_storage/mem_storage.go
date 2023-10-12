@@ -6,11 +6,14 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/models"
 	"strings"
+	"sync"
 )
 
 type Mem struct {
 	gauge   map[string]float64
 	counter map[string]int64
+
+	mx sync.Mutex
 }
 
 var (
@@ -31,6 +34,9 @@ func (m *Mem) Close() error {
 }
 
 func (m *Mem) GetGauge(name string) (float64, error) {
+	m.mx.Lock()
+	defer m.mx.Unlock()
+
 	name = m.normalizeName(name)
 
 	value, ok := m.gauge[name]
@@ -42,14 +48,20 @@ func (m *Mem) GetGauge(name string) (float64, error) {
 }
 
 func (m *Mem) SetGauge(name string, value float64) {
+	m.mx.Lock()
+	defer m.mx.Unlock()
+
 	name = m.normalizeName(name)
 	m.gauge[name] = value
 }
 
 func (m *Mem) GetCounter(name string) (int64, error) {
-	name = m.normalizeName(name)
+	m.mx.Lock()
+	defer m.mx.Unlock()
 
+	name = m.normalizeName(name)
 	value, ok := m.counter[name]
+
 	if !ok {
 		return 0, ErrInvalidCounterName
 	}
@@ -59,8 +71,12 @@ func (m *Mem) GetCounter(name string) (int64, error) {
 
 func (m *Mem) AddCounter(name string, value int64) {
 	name = m.normalizeName(name)
+	_, err := m.GetCounter(name)
 
-	if _, err := m.GetCounter(name); err != nil {
+	m.mx.Lock()
+	defer m.mx.Unlock()
+
+	if err != nil {
 		m.counter[name] = value
 	} else {
 		m.counter[name] += value
