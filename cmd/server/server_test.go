@@ -33,7 +33,8 @@ func TestBadRequest(t *testing.T) {
 		},
 	}
 
-	r := setupRouter(nil, zaptest.NewLogger(t).Sugar())
+	storage := memstorage.NewMem()
+	r := setupRouter(storage, zaptest.NewLogger(t).Sugar())
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

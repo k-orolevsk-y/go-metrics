@@ -80,9 +80,7 @@ func setupRouter(storage models.Storage, log logger.Logger) *gin.Engine {
 
 	r.Use(baseMiddleware.Logger)
 	r.Use(baseMiddleware.Compress)
-	if storage != nil {
-		r.Use(storage.GetMiddleware())
-	}
+	r.Use(storage.GetMiddleware())
 
 	r.GET("/", baseHandler.Values())
 
