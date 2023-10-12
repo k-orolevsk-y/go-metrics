@@ -1,7 +1,9 @@
-package storage
+package memstorage
 
 import (
+	"context"
 	"errors"
+	"github.com/gin-gonic/gin"
 	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/models"
 	"strings"
 )
@@ -11,21 +13,21 @@ type Mem struct {
 	counter map[string]int64
 }
 
-type MetricType string
-
 var (
-	GaugeType   MetricType = "gauge"
-	CounterType MetricType = "counter"
-
 	ErrInvalidGaugeName   = errors.New("invalid gauge name")
 	ErrInvalidCounterName = errors.New("invalid counter name")
 )
 
-func NewMem() Mem {
-	return Mem{
+func NewMem() *Mem {
+	return &Mem{
 		gauge:   make(map[string]float64),
 		counter: make(map[string]int64),
 	}
+}
+
+func (m *Mem) Close() error {
+	*m = Mem{}
+	return nil
 }
 
 func (m *Mem) GetGauge(name string) (float64, error) {
@@ -71,7 +73,7 @@ func (m *Mem) GetAll() []models.MetricsValue {
 	for k, v := range m.gauge {
 		values = append(values, models.MetricsValue{
 			ID:    k,
-			MType: string(GaugeType),
+			MType: string(models.GaugeType),
 			Value: &v,
 		})
 	}
@@ -79,12 +81,20 @@ func (m *Mem) GetAll() []models.MetricsValue {
 	for k, v := range m.counter {
 		values = append(values, models.MetricsValue{
 			ID:    k,
-			MType: string(CounterType),
+			MType: string(models.CounterType),
 			Delta: &v,
 		})
 	}
 
 	return values
+}
+
+func (m *Mem) Ping(_ context.Context) error {
+	return nil
+}
+
+func (m *Mem) GetMiddleware() gin.HandlerFunc {
+	return func(_ *gin.Context) {}
 }
 
 func (m *Mem) normalizeName(name string) string {

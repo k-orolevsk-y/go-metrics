@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/mem_storage"
 	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/models"
-	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/storage"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
@@ -33,7 +33,7 @@ func TestBadRequest(t *testing.T) {
 		},
 	}
 
-	r := setupRouter(nil, nil, nil, zaptest.NewLogger(t).Sugar())
+	r := setupRouter(nil, zaptest.NewLogger(t).Sugar())
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -167,8 +167,8 @@ func TestUpdate(t *testing.T) {
 		},
 	}
 
-	memStorage := storage.NewMem()
-	r := setupRouter(&memStorage, nil, nil, zaptest.NewLogger(t).Sugar())
+	storage := memstorage.NewMem()
+	r := setupRouter(storage, zaptest.NewLogger(t).Sugar())
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -213,7 +213,7 @@ func TestUpdateByBody(t *testing.T) {
 				httpMethod: http.MethodPost,
 				body: models.MetricsUpdate{
 					ID:    "test",
-					MType: string(storage.GaugeType),
+					MType: string(models.GaugeType),
 					Value: getPointerFloat64(123.0),
 				},
 			},
@@ -228,7 +228,7 @@ func TestUpdateByBody(t *testing.T) {
 				httpMethod: http.MethodPost,
 				body: models.MetricsUpdate{
 					ID:    "test",
-					MType: string(storage.GaugeType),
+					MType: string(models.GaugeType),
 					Value: getPointerFloat64(123.123456789123456789),
 				},
 			},
@@ -243,7 +243,7 @@ func TestUpdateByBody(t *testing.T) {
 				httpMethod: http.MethodDelete,
 				body: models.MetricsUpdate{
 					ID:    "test",
-					MType: string(storage.GaugeType),
+					MType: string(models.GaugeType),
 					Value: getPointerFloat64(123.0),
 				},
 			},
@@ -340,8 +340,8 @@ func TestUpdateByBody(t *testing.T) {
 		},
 	}
 
-	memStorage := storage.NewMem()
-	r := setupRouter(&memStorage, nil, nil, zaptest.NewLogger(t).Sugar())
+	storage := memstorage.NewMem()
+	r := setupRouter(storage, zaptest.NewLogger(t).Sugar())
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -370,7 +370,7 @@ func TestUpdateByBody(t *testing.T) {
 func TestValue(t *testing.T) {
 	type args struct {
 		name       string
-		metricType storage.MetricType
+		metricType models.MetricType
 		value      interface{}
 	}
 	type want struct {
@@ -386,7 +386,7 @@ func TestValue(t *testing.T) {
 			name: "Positive (gauge)",
 			args: args{
 				name:       "TestGauge",
-				metricType: storage.GaugeType,
+				metricType: models.GaugeType,
 				value:      10.5,
 			},
 			want: want{
@@ -398,7 +398,7 @@ func TestValue(t *testing.T) {
 			name: "Positive (counter)",
 			args: args{
 				name:       "TestCounter",
-				metricType: storage.CounterType,
+				metricType: models.CounterType,
 				value:      int64(10500),
 			},
 			want: want{
@@ -409,7 +409,7 @@ func TestValue(t *testing.T) {
 		{
 			name: "Negative (gauge)",
 			args: args{
-				metricType: storage.GaugeType,
+				metricType: models.GaugeType,
 			},
 			want: want{
 				body:       "",
@@ -419,7 +419,7 @@ func TestValue(t *testing.T) {
 		{
 			name: "Negative (counter)",
 			args: args{
-				metricType: storage.CounterType,
+				metricType: models.CounterType,
 			},
 			want: want{
 				body:       "",
@@ -429,7 +429,7 @@ func TestValue(t *testing.T) {
 		{
 			name: "Negative (invalid metric type)",
 			args: args{
-				metricType: storage.MetricType("invalid"),
+				metricType: models.MetricType("invalid"),
 			},
 			want: want{
 				body:       "",
@@ -438,17 +438,17 @@ func TestValue(t *testing.T) {
 		},
 	}
 
-	memStorage := storage.NewMem()
-	r := setupRouter(&memStorage, nil, nil, zaptest.NewLogger(t).Sugar())
+	storage := memstorage.NewMem()
+	r := setupRouter(storage, zaptest.NewLogger(t).Sugar())
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.args.name != "" {
 				switch tt.args.metricType {
-				case storage.CounterType:
-					memStorage.AddCounter(tt.args.name, tt.args.value.(int64))
-				case storage.GaugeType:
-					memStorage.SetGauge(tt.args.name, tt.args.value.(float64))
+				case models.CounterType:
+					storage.AddCounter(tt.args.name, tt.args.value.(int64))
+				case models.GaugeType:
+					storage.SetGauge(tt.args.name, tt.args.value.(float64))
 				}
 			}
 
@@ -472,7 +472,7 @@ func TestValue(t *testing.T) {
 func TestValueByBody(t *testing.T) {
 	type args struct {
 		name       string
-		metricType storage.MetricType
+		metricType models.MetricType
 		value      interface{}
 	}
 	type want struct {
@@ -488,7 +488,7 @@ func TestValueByBody(t *testing.T) {
 			name: "Positive (gauge)",
 			args: args{
 				name:       "TestGauge",
-				metricType: storage.GaugeType,
+				metricType: models.GaugeType,
 				value:      10.5,
 			},
 			want: want{
@@ -500,7 +500,7 @@ func TestValueByBody(t *testing.T) {
 			name: "Positive (counter)",
 			args: args{
 				name:       "TestCounter",
-				metricType: storage.CounterType,
+				metricType: models.CounterType,
 				value:      int64(10500),
 			},
 			want: want{
@@ -511,7 +511,7 @@ func TestValueByBody(t *testing.T) {
 		{
 			name: "Negative (gauge)",
 			args: args{
-				metricType: storage.GaugeType,
+				metricType: models.GaugeType,
 			},
 			want: want{
 				body:       "{\"error\":\"Field validation for \\\"ID\\\" failed on the 'required' tag.\"}",
@@ -521,7 +521,7 @@ func TestValueByBody(t *testing.T) {
 		{
 			name: "Negative (counter)",
 			args: args{
-				metricType: storage.CounterType,
+				metricType: models.CounterType,
 			},
 			want: want{
 				body:       "{\"error\":\"Field validation for \\\"ID\\\" failed on the 'required' tag.\"}",
@@ -530,17 +530,17 @@ func TestValueByBody(t *testing.T) {
 		},
 	}
 
-	memStorage := storage.NewMem()
-	r := setupRouter(&memStorage, nil, nil, zaptest.NewLogger(t).Sugar())
+	storage := memstorage.NewMem()
+	r := setupRouter(storage, zaptest.NewLogger(t).Sugar())
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.args.name != "" {
 				switch tt.args.metricType {
-				case storage.CounterType:
-					memStorage.AddCounter(tt.args.name, tt.args.value.(int64))
-				case storage.GaugeType:
-					memStorage.SetGauge(tt.args.name, tt.args.value.(float64))
+				case models.CounterType:
+					storage.AddCounter(tt.args.name, tt.args.value.(int64))
+				case models.GaugeType:
+					storage.SetGauge(tt.args.name, tt.args.value.(float64))
 				}
 			}
 
@@ -603,8 +603,8 @@ func TestValues(t *testing.T) {
 		},
 	}
 
-	memStorage := storage.NewMem()
-	r := setupRouter(&memStorage, nil, nil, zaptest.NewLogger(t).Sugar())
+	storage := memstorage.NewMem()
+	r := setupRouter(storage, zaptest.NewLogger(t).Sugar())
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

@@ -3,7 +3,6 @@ package handlers
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/models"
-	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/storage"
 	"net/http"
 	"strconv"
 )
@@ -24,7 +23,7 @@ func (bh baseHandler) UpdateByURI() gin.HandlerFunc {
 		}
 
 		storageType := ctx.Param("type")
-		if storageType == string(storage.GaugeType) {
+		if storageType == string(models.GaugeType) {
 			value, err := strconv.ParseFloat(ctx.Param("value"), 64)
 			if err != nil {
 				bh.handleBadRequest(ctx)
@@ -32,7 +31,7 @@ func (bh baseHandler) UpdateByURI() gin.HandlerFunc {
 			}
 
 			bh.storage.SetGauge(id, value)
-		} else if storageType == string(storage.CounterType) {
+		} else if storageType == string(models.CounterType) {
 			value, err := strconv.ParseInt(ctx.Param("value"), 0, 64)
 			if err != nil {
 				bh.handleBadRequest(ctx)
@@ -74,9 +73,9 @@ func (bh baseHandler) UpdateByBody() gin.HandlerFunc {
 			return
 		}
 
-		if obj.MType == string(storage.GaugeType) {
+		if obj.MType == string(models.GaugeType) {
 			bh.storage.SetGauge(obj.ID, *obj.Value)
-		} else if obj.MType == string(storage.CounterType) {
+		} else if obj.MType == string(models.CounterType) {
 			bh.storage.AddCounter(obj.ID, *obj.Delta)
 
 			counter, err := bh.storage.GetCounter(obj.ID)

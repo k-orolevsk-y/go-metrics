@@ -15,11 +15,11 @@ func main() {
 		panic(err)
 	}
 
-	defer func(log logger.Logger) {
-		if err = log.Sync(); err != nil {
+	defer func() {
+		if err = sugarLogger.Sync(); err != nil {
 			panic(err)
 		}
-	}(sugarLogger)
+	}()
 
 	config.Load()
 	if err = config.Parse(); err != nil {

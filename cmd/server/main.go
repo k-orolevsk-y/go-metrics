@@ -1,13 +1,14 @@
 package main
 
 import (
-	"database/sql"
 	"github.com/gin-gonic/gin"
 	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/config"
+	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/database_storage"
 	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/file_storage"
 	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/handlers"
+	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/mem_storage"
 	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/middlewares"
-	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/storage"
+	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/models"
 	"github.com/k-orolevsk-y/go-metricts-tpl/pkg/database"
 	"github.com/k-orolevsk-y/go-metricts-tpl/pkg/logger"
 )
@@ -23,59 +24,64 @@ func main() {
 		sugarLogger.Panicf("Failed loading config: %s", err)
 	}
 
-	db, err := database.New()
+	storage, err := setupStorage(sugarLogger)
 	if err != nil {
-		sugarLogger.Panicf("Failed connect database: %s", err)
+		sugarLogger.Panicf("Failed setup storage: %s", err)
 	}
 
-	memStorage := storage.NewMem()
-
-	var fileStorage *filestorage.Storage
-	if config.Config.FileStoragePath != "" {
-		fileStorage, err = filestorage.New(&memStorage, sugarLogger)
-		if err != nil {
-			sugarLogger.Panicf("Failed loading file storage: %s", err)
-		}
-
-		if err = fileStorage.Restore(); err != nil {
-			sugarLogger.Panicf("Failed to recover data from file: %s", err)
-		}
-		fileStorage.Start()
-	}
-
-	defer func(log logger.Logger, fileStorage *filestorage.Storage, db *sql.DB) {
-		if err = log.Sync(); err != nil {
+	defer func() {
+		if err = sugarLogger.Sync(); err != nil {
 			panic(err)
 		}
-		if fileStorage != nil {
-			if err = fileStorage.Close(); err != nil {
-				panic(err)
-			}
-		}
-		if err = db.Close(); err != nil {
+
+		if err = storage.Close(); err != nil {
 			panic(err)
 		}
-	}(sugarLogger, fileStorage, db)
+	}()
 
-	r := setupRouter(&memStorage, fileStorage, db, sugarLogger)
+	r := setupRouter(storage, sugarLogger)
 	if err = r.Run(config.Config.Address); err != nil {
 		sugarLogger.Panicf("Failed start server: %s", err)
 	}
 }
 
-func setupRouter(storage *storage.Mem, fileStorage *filestorage.Storage, db *sql.DB, log logger.Logger) *gin.Engine {
+func setupStorage(log logger.Logger) (models.Storage, error) {
+	if config.Config.DatabaseDSN != "" {
+		db, err := database.New()
+		if err != nil {
+			return nil, err
+		}
+
+		return dbstorage.New(db, log)
+	} else if config.Config.FileStoragePath != "" {
+		fs, err := filestorage.New(log)
+		if err != nil {
+			return nil, err
+		}
+
+		if err = fs.Restore(); err != nil {
+			return nil, err
+		}
+		fs.Start()
+
+		return fs, nil
+	} else {
+		return memstorage.NewMem(), nil
+	}
+}
+
+func setupRouter(storage models.Storage, log logger.Logger) *gin.Engine {
 	gin.SetMode(gin.ReleaseMode)
 
 	r := gin.New()
 
-	baseHandler := handlers.NewBase(storage, db, log)
+	baseHandler := handlers.NewBase(storage, log)
 	baseMiddleware := middlewares.NewBase(log)
 
-	r.Use(baseMiddleware.Compress)
 	r.Use(baseMiddleware.Logger)
-
-	if fileStorage != nil {
-		r.Use(fileStorage.GetMiddleware())
+	r.Use(baseMiddleware.Compress)
+	if storage != nil {
+		r.Use(storage.GetMiddleware())
 	}
 
 	r.GET("/", baseHandler.Values())

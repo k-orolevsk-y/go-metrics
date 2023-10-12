@@ -14,7 +14,7 @@ func (bh baseHandler) Ping() gin.HandlerFunc {
 		ctxDB, cancel := context.WithTimeout(context.Background(), time.Second)
 		defer cancel()
 
-		if err := bh.db.PingContext(ctxDB); err != nil {
+		if err := bh.storage.Ping(ctxDB); err != nil {
 			ctx.JSON(http.StatusInternalServerError, models.ErrorResponse{
 				Error: fmt.Sprint(err),
 			})

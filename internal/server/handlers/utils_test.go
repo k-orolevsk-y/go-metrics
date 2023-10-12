@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"github.com/gin-gonic/gin"
 	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/models"
-	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/storage"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
@@ -75,7 +74,7 @@ func TestValidateContentType(t *testing.T) {
 	}
 
 	gin.SetMode(gin.ReleaseMode)
-	bh := NewBase(nil, nil, zaptest.NewLogger(t).Sugar())
+	bh := NewBase(nil, zaptest.NewLogger(t).Sugar())
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -124,7 +123,7 @@ func TestValidateAndShouldBindJSON(t *testing.T) {
 				obj: models.MetricsUpdate{},
 				body: models.MetricsUpdate{
 					ID:    "TestGauge",
-					MType: string(storage.GaugeType),
+					MType: string(models.GaugeType),
 					Value: getRandomFloat64(),
 				},
 			},
@@ -140,7 +139,7 @@ func TestValidateAndShouldBindJSON(t *testing.T) {
 				obj: models.MetricsUpdate{},
 				body: models.MetricsUpdate{
 					ID:    "TestCounter",
-					MType: string(storage.CounterType),
+					MType: string(models.CounterType),
 					Delta: getRandomInt64(),
 				},
 			},
@@ -183,7 +182,7 @@ func TestValidateAndShouldBindJSON(t *testing.T) {
 				obj: models.MetricsUpdate{},
 				body: models.MetricsUpdate{
 					ID:    "NTest",
-					MType: string(storage.GaugeType),
+					MType: string(models.GaugeType),
 					Delta: getRandomInt64(),
 				},
 			},
@@ -199,7 +198,7 @@ func TestValidateAndShouldBindJSON(t *testing.T) {
 				obj: models.MetricsUpdate{},
 				body: models.MetricsUpdate{
 					ID:    "NTest",
-					MType: string(storage.CounterType),
+					MType: string(models.CounterType),
 					Value: getRandomFloat64(),
 				},
 			},
@@ -223,7 +222,7 @@ func TestValidateAndShouldBindJSON(t *testing.T) {
 	}
 
 	gin.SetMode(gin.ReleaseMode)
-	bh := NewBase(nil, nil, zaptest.NewLogger(t).Sugar())
+	bh := NewBase(nil, zaptest.NewLogger(t).Sugar())
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

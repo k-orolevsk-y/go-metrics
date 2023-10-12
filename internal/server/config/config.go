@@ -16,7 +16,7 @@ var Config struct {
 func Load() {
 	flag.StringVar(&Config.Address, "a", "localhost:8080", "server address")
 	flag.Int64Var(&Config.StoreInterval, "i", 0, "store interval in seconds")
-	flag.StringVar(&Config.FileStoragePath, "f", "tmp/metrics-db.json", "json file storage path")
+	flag.StringVar(&Config.FileStoragePath, "f", "tmp/metrics-db.json", "json file mem_storage path")
 	flag.BoolVar(&Config.Restore, "r", true, "whether to load old values from a file")
 	flag.StringVar(&Config.DatabaseDSN, "d", "", "postgresql dsn")
 }

@@ -1,4 +1,4 @@
-package storage
+package memstorage
 
 import (
 	"github.com/stretchr/testify/assert"
