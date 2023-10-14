@@ -1,11 +1,11 @@
 package database
 
 import (
-	"database/sql"
 	_ "github.com/jackc/pgx/v5/stdlib"
+	"github.com/jmoiron/sqlx"
 	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/config"
 )
 
-func New() (*sql.DB, error) {
-	return sql.Open("pgx", config.Config.DatabaseDSN)
+func New() (*sqlx.DB, error) {
+	return sqlx.Open("pgx", config.Config.DatabaseDSN)
 }

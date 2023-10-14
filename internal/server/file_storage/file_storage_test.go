@@ -54,9 +54,9 @@ func TestSuccessFileStorage(t *testing.T) {
 	for _, metric := range metrics {
 		switch metric.MType {
 		case string(models.GaugeType):
-			fStorage.SetGauge(metric.ID, *metric.Value)
+			_ = fStorage.SetGauge(metric.ID, *metric.Value)
 		case string(models.CounterType):
-			fStorage.AddCounter(metric.ID, *metric.Delta)
+			_ = fStorage.AddCounter(metric.ID, *metric.Delta)
 		}
 	}
 
@@ -69,7 +69,9 @@ func TestSuccessFileStorage(t *testing.T) {
 	require.NoError(t, err)
 
 	require.NoError(t, fStorage.Restore())
-	require.Equal(t, len(fStorage.GetAll()), len(metrics))
+
+	metrics, _ = fStorage.GetAll()
+	require.Equal(t, len(metrics), len(metrics))
 
 	if err = os.Remove(file.Name()); err != nil {
 		t.Logf("Не удалось удалить тестовый json-файл: %s", err)

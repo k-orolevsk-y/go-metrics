@@ -41,7 +41,7 @@ func TestMem_GetCounter(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.args.name != "" && tt.args.value != 0 {
-				storage.AddCounter(tt.args.name, tt.args.value)
+				_ = storage.AddCounter(tt.args.name, tt.args.value)
 			}
 
 			got, err := storage.GetCounter(tt.args.name)
@@ -90,7 +90,7 @@ func TestMem_GetGauge(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.args.name != "" && tt.args.value != 0 {
-				storage.SetGauge(tt.args.name, tt.args.value)
+				_ = storage.SetGauge(tt.args.name, tt.args.value)
 			}
 
 			got, err := storage.GetGauge(tt.args.name)

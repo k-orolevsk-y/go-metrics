@@ -6,13 +6,13 @@ import (
 )
 
 type Storage interface {
-	SetGauge(string, float64)
-	AddCounter(string, int64)
+	SetGauge(string, float64) error
+	AddCounter(string, int64) error
 
 	GetGauge(string) (float64, error)
 	GetCounter(string) (int64, error)
 
-	GetAll() []MetricsValue
+	GetAll() ([]MetricsValue, error)
 
 	GetMiddleware() gin.HandlerFunc
 	Ping(context.Context) error

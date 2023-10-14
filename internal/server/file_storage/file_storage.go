@@ -70,9 +70,9 @@ func (s *Storage) Restore() error {
 	for _, metric := range metrics {
 		switch metric.MType {
 		case string(models.GaugeType):
-			s.SetGauge(metric.ID, *metric.Value)
+			_ = s.SetGauge(metric.ID, *metric.Value)
 		case string(models.CounterType):
-			s.AddCounter(metric.ID, *metric.Delta)
+			_ = s.AddCounter(metric.ID, *metric.Delta)
 		default:
 			errorsCount++
 			s.log.Errorf("The metric couldn't be restored, it has an unknown type: %+v", metrics)
@@ -110,8 +110,12 @@ func (s *Storage) update() (int, error) {
 		return 0, err
 	}
 
-	metrics := s.GetAll()
-	if err := s.encoder.Encode(&metrics); err != nil {
+	metrics, err := s.GetAll()
+	if err != nil {
+		return 0, err
+	}
+
+	if err = s.encoder.Encode(&metrics); err != nil {
 		return 0, err
 	}
 

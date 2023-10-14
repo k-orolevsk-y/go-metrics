@@ -47,12 +47,14 @@ func (m *Mem) GetGauge(name string) (float64, error) {
 	return value, nil
 }
 
-func (m *Mem) SetGauge(name string, value float64) {
+func (m *Mem) SetGauge(name string, value float64) error {
 	m.mx.Lock()
 	defer m.mx.Unlock()
 
 	name = m.normalizeName(name)
 	m.gauge[name] = value
+
+	return nil
 }
 
 func (m *Mem) GetCounter(name string) (int64, error) {
@@ -69,7 +71,7 @@ func (m *Mem) GetCounter(name string) (int64, error) {
 	return value, nil
 }
 
-func (m *Mem) AddCounter(name string, value int64) {
+func (m *Mem) AddCounter(name string, value int64) error {
 	name = m.normalizeName(name)
 	_, err := m.GetCounter(name)
 
@@ -81,9 +83,11 @@ func (m *Mem) AddCounter(name string, value int64) {
 	} else {
 		m.counter[name] += value
 	}
+
+	return nil
 }
 
-func (m *Mem) GetAll() []models.MetricsValue {
+func (m *Mem) GetAll() ([]models.MetricsValue, error) {
 	var values []models.MetricsValue
 
 	for k, v := range m.gauge {
@@ -102,7 +106,7 @@ func (m *Mem) GetAll() []models.MetricsValue {
 		})
 	}
 
-	return values
+	return values, nil
 }
 
 func (m *Mem) Ping(_ context.Context) error {

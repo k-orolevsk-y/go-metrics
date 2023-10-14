@@ -447,9 +447,9 @@ func TestValue(t *testing.T) {
 			if tt.args.name != "" {
 				switch tt.args.metricType {
 				case models.CounterType:
-					storage.AddCounter(tt.args.name, tt.args.value.(int64))
+					_ = storage.AddCounter(tt.args.name, tt.args.value.(int64))
 				case models.GaugeType:
-					storage.SetGauge(tt.args.name, tt.args.value.(float64))
+					_ = storage.SetGauge(tt.args.name, tt.args.value.(float64))
 				}
 			}
 
@@ -539,9 +539,9 @@ func TestValueByBody(t *testing.T) {
 			if tt.args.name != "" {
 				switch tt.args.metricType {
 				case models.CounterType:
-					storage.AddCounter(tt.args.name, tt.args.value.(int64))
+					_ = storage.AddCounter(tt.args.name, tt.args.value.(int64))
 				case models.GaugeType:
-					storage.SetGauge(tt.args.name, tt.args.value.(float64))
+					_ = storage.SetGauge(tt.args.name, tt.args.value.(float64))
 				}
 			}
 

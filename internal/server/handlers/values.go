@@ -11,14 +11,22 @@ import (
 
 func (bh baseHandler) Values() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		values := bh.storage.GetAll()
+		values, err := bh.storage.GetAll()
+		if err != nil {
+			bh.log.Errorf("Error get all metrics: %s", err)
+
+			ctx.Status(http.StatusInternalServerError)
+			ctx.Abort()
+
+			return
+		}
 
 		text := "<center><h1>Values</h1>"
 		for _, value := range values {
 			if value.MType == string(models.GaugeType) {
-				text += fmt.Sprintf("<p>%s: %s - %d</p>", value.MType, value.ID, value.Value)
+				text += fmt.Sprintf("<p>%s: %s - %v</p>", value.MType, value.ID, *value.Value)
 			} else if value.MType == string(models.CounterType) {
-				text += fmt.Sprintf("<p>%s: %s - %d</p>", value.MType, value.ID, value.Delta)
+				text += fmt.Sprintf("<p>%s: %s - %d</p>", value.MType, value.ID, *value.Delta)
 			}
 		}
 		text += "</center>"
