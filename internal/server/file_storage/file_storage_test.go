@@ -54,9 +54,9 @@ func TestSuccessFileStorage(t *testing.T) {
 	for _, metric := range metrics {
 		switch metric.MType {
 		case string(models.GaugeType):
-			_ = fStorage.SetGauge(metric.ID, *metric.Value)
+			_ = fStorage.SetGauge(metric.ID, metric.Value)
 		case string(models.CounterType):
-			_ = fStorage.AddCounter(metric.ID, *metric.Delta)
+			_ = fStorage.AddCounter(metric.ID, metric.Delta)
 		}
 	}
 

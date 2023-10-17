@@ -19,7 +19,7 @@ func (t *tx) buildPrepares(ctx context.Context) (err error) {
 	return
 }
 
-func (t *tx) SetGauge(name string, value float64) (err error) {
+func (t *tx) SetGauge(name string, value *float64) (err error) {
 	for _, timeSleep := range maximumNumberOfRetries {
 		_, err = t.prepareSetOrUpdateMetric.ExecContext(context.Background(), map[string]interface{}{"name": name, "mtype": "gauge", "delta": 0, "value": value})
 
@@ -34,7 +34,7 @@ func (t *tx) SetGauge(name string, value float64) (err error) {
 	return
 }
 
-func (t *tx) AddCounter(name string, value int64) (err error) {
+func (t *tx) AddCounter(name string, value *int64) (err error) {
 	for _, timeSleep := range maximumNumberOfRetries {
 		_, err = t.prepareSetOrUpdateMetric.ExecContext(context.Background(), map[string]interface{}{"name": name, "mtype": "counter", "delta": value, "value": 0.0})
 

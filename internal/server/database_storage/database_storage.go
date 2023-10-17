@@ -113,7 +113,7 @@ func (dbStorage *databaseStorage) NewTx() (models.StorageTx, error) {
 	return t, nil
 }
 
-func (dbStorage *databaseStorage) SetGauge(name string, value float64) (err error) {
+func (dbStorage *databaseStorage) SetGauge(name string, value *float64) (err error) {
 	for _, timeSleep := range maximumNumberOfRetries {
 		_, err = dbStorage.prepares.setOrUpdateMetric.ExecContext(context.Background(), map[string]interface{}{"name": name, "mtype": "gauge", "delta": 0, "value": value})
 
@@ -128,7 +128,7 @@ func (dbStorage *databaseStorage) SetGauge(name string, value float64) (err erro
 	return
 }
 
-func (dbStorage *databaseStorage) AddCounter(name string, value int64) (err error) {
+func (dbStorage *databaseStorage) AddCounter(name string, value *int64) (err error) {
 	for _, timeSleep := range maximumNumberOfRetries {
 		_, err = dbStorage.prepares.setOrUpdateMetric.ExecContext(context.Background(), map[string]interface{}{"name": name, "mtype": "counter", "delta": value, "value": 0.0})
 
@@ -143,7 +143,7 @@ func (dbStorage *databaseStorage) AddCounter(name string, value int64) (err erro
 	return
 }
 
-func (dbStorage *databaseStorage) GetGauge(name string) (value float64, err error) {
+func (dbStorage *databaseStorage) GetGauge(name string) (value *float64, err error) {
 	for _, timeSleep := range maximumNumberOfRetries {
 		err = dbStorage.prepares.getGaugeMetric.GetContext(context.Background(), &value, map[string]interface{}{"name": name})
 
@@ -158,7 +158,7 @@ func (dbStorage *databaseStorage) GetGauge(name string) (value float64, err erro
 	return
 }
 
-func (dbStorage *databaseStorage) GetCounter(name string) (value int64, err error) {
+func (dbStorage *databaseStorage) GetCounter(name string) (value *int64, err error) {
 	for _, timeSleep := range maximumNumberOfRetries {
 		err = dbStorage.prepares.getCounterMetric.GetContext(context.Background(), &value, map[string]interface{}{"name": name})
 

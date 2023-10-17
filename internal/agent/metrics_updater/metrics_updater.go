@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	retries                = []int{1, 3, 6}
+	retries                = []int{1, 3, 5}
 	ErrorInvalidStatusCode = errors.New("invalid status code")
 )
 

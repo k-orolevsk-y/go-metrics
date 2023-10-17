@@ -34,7 +34,7 @@ func (bh baseHandler) ValueByURI() gin.HandlerFunc {
 				return
 			}
 
-			response = strconv.FormatFloat(value, 'f', -1, 64)
+			response = strconv.FormatFloat(*value, 'f', -1, 64)
 		} else if storageType == string(models.CounterType) {
 			value, err := bh.storage.GetCounter(id)
 			if err != nil {
@@ -44,7 +44,7 @@ func (bh baseHandler) ValueByURI() gin.HandlerFunc {
 				return
 			}
 
-			response = value
+			response = *value
 		} else {
 			bh.handleBadRequest(ctx)
 			return
@@ -88,7 +88,7 @@ func (bh baseHandler) ValueByBody() gin.HandlerFunc {
 				return
 			}
 
-			obj.Value = &value
+			obj.Value = value
 		} else if obj.MType == string(models.CounterType) {
 			delta, err := bh.storage.GetCounter(obj.ID)
 			if err != nil {
@@ -98,7 +98,7 @@ func (bh baseHandler) ValueByBody() gin.HandlerFunc {
 				return
 			}
 
-			obj.Delta = &delta
+			obj.Delta = delta
 		}
 
 		ctx.JSON(http.StatusOK, obj)

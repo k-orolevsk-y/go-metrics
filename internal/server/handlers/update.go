@@ -30,7 +30,7 @@ func (bh baseHandler) UpdateByURI() gin.HandlerFunc {
 				return
 			}
 
-			if err = bh.storage.SetGauge(id, value); err != nil {
+			if err = bh.storage.SetGauge(id, &value); err != nil {
 				bh.log.Errorf("Failed set/update counter value: %s", err)
 
 				ctx.Status(http.StatusInternalServerError)
@@ -45,7 +45,7 @@ func (bh baseHandler) UpdateByURI() gin.HandlerFunc {
 				return
 			}
 
-			if err = bh.storage.AddCounter(id, value); err != nil {
+			if err = bh.storage.AddCounter(id, &value); err != nil {
 				bh.log.Errorf("Failed set/update counter value: %s", err)
 
 				ctx.Status(http.StatusInternalServerError)
@@ -88,7 +88,7 @@ func (bh baseHandler) UpdateByBody() gin.HandlerFunc {
 		}
 
 		if obj.MType == string(models.GaugeType) {
-			if err := bh.storage.SetGauge(obj.ID, *obj.Value); err != nil {
+			if err := bh.storage.SetGauge(obj.ID, obj.Value); err != nil {
 				bh.log.Errorf("Failed set/update counter value: %s", err)
 
 				ctx.Status(http.StatusInternalServerError)
@@ -97,7 +97,7 @@ func (bh baseHandler) UpdateByBody() gin.HandlerFunc {
 				return
 			}
 		} else if obj.MType == string(models.CounterType) {
-			if err := bh.storage.AddCounter(obj.ID, *obj.Delta); err != nil {
+			if err := bh.storage.AddCounter(obj.ID, obj.Delta); err != nil {
 				bh.log.Errorf("Failed set/update counter value: %s", err)
 
 				ctx.Status(http.StatusInternalServerError)
@@ -110,7 +110,7 @@ func (bh baseHandler) UpdateByBody() gin.HandlerFunc {
 			if err != nil {
 				bh.log.Errorf("Failed to get updated counter value: %s", err)
 			} else {
-				obj.Delta = &counter
+				obj.Delta = counter
 			}
 		}
 

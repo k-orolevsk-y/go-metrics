@@ -12,27 +12,27 @@ type tx struct {
 	rows []models.MetricsUpdate
 }
 
-func (t *tx) SetGauge(name string, value float64) error {
+func (t *tx) SetGauge(name string, value *float64) error {
 	t.mx.Lock()
 	defer t.mx.Unlock()
 
 	t.rows = append(t.rows, models.MetricsUpdate{
 		ID:    name,
-		MType: "gauge",
-		Value: &value,
+		MType: string(models.GaugeType),
+		Value: value,
 	})
 
 	return nil
 }
 
-func (t *tx) AddCounter(name string, value int64) error {
+func (t *tx) AddCounter(name string, value *int64) error {
 	t.mx.Lock()
 	defer t.mx.Unlock()
 
 	t.rows = append(t.rows, models.MetricsUpdate{
 		ID:    name,
-		MType: "counter",
-		Delta: &value,
+		MType: string(models.CounterType),
+		Delta: value,
 	})
 
 	return nil
@@ -44,10 +44,10 @@ func (t *tx) Commit() error {
 
 	for _, row := range t.rows {
 		switch row.MType {
-		case "gauge":
-			_ = t.storage.SetGauge(row.ID, *row.Value)
-		case "counter":
-			_ = t.storage.AddCounter(row.ID, *row.Delta)
+		case string(models.GaugeType):
+			_ = t.storage.SetGauge(row.ID, row.Value)
+		case string(models.CounterType):
+			_ = t.storage.AddCounter(row.ID, row.Delta)
 		}
 	}
 

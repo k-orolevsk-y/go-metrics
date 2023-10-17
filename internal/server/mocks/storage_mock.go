@@ -37,7 +37,7 @@ func (m *MockStorage) EXPECT() *MockStorageMockRecorder {
 }
 
 // AddCounter mocks base method.
-func (m *MockStorage) AddCounter(arg0 string, arg1 int64) error {
+func (m *MockStorage) AddCounter(arg0 string, arg1 *int64) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AddCounter", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -80,10 +80,10 @@ func (mr *MockStorageMockRecorder) GetAll() *gomock.Call {
 }
 
 // GetCounter mocks base method.
-func (m *MockStorage) GetCounter(arg0 string) (int64, error) {
+func (m *MockStorage) GetCounter(arg0 string) (*int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetCounter", arg0)
-	ret0, _ := ret[0].(int64)
+	ret0, _ := ret[0].(*int64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -95,10 +95,10 @@ func (mr *MockStorageMockRecorder) GetCounter(arg0 interface{}) *gomock.Call {
 }
 
 // GetGauge mocks base method.
-func (m *MockStorage) GetGauge(arg0 string) (float64, error) {
+func (m *MockStorage) GetGauge(arg0 string) (*float64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetGauge", arg0)
-	ret0, _ := ret[0].(float64)
+	ret0, _ := ret[0].(*float64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -153,7 +153,7 @@ func (mr *MockStorageMockRecorder) Ping(arg0 interface{}) *gomock.Call {
 }
 
 // SetGauge mocks base method.
-func (m *MockStorage) SetGauge(arg0 string, arg1 float64) error {
+func (m *MockStorage) SetGauge(arg0 string, arg1 *float64) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SetGauge", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -204,7 +204,7 @@ func (m *MockStorageTx) EXPECT() *MockStorageTxMockRecorder {
 }
 
 // AddCounter mocks base method.
-func (m *MockStorageTx) AddCounter(arg0 string, arg1 int64) error {
+func (m *MockStorageTx) AddCounter(arg0 string, arg1 *int64) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AddCounter", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -246,7 +246,7 @@ func (mr *MockStorageTxMockRecorder) RollBack() *gomock.Call {
 }
 
 // SetGauge mocks base method.
-func (m *MockStorageTx) SetGauge(arg0 string, arg1 float64) error {
+func (m *MockStorageTx) SetGauge(arg0 string, arg1 *float64) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SetGauge", arg0, arg1)
 	ret0, _ := ret[0].(error)

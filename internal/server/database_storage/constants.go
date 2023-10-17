@@ -1,6 +1,6 @@
 package dbstorage
 
-var maximumNumberOfRetries = []int{1, 3, 6}
+var maximumNumberOfRetries = []int{1, 3, 5}
 
 const schema = `
 	CREATE TABLE IF NOT EXISTS metrics (

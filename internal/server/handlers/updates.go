@@ -40,7 +40,7 @@ func (bh baseHandler) Updates() gin.HandlerFunc {
 
 		for _, obj := range objects {
 			if obj.MType == string(models.GaugeType) {
-				if err = tx.SetGauge(obj.ID, *obj.Value); err != nil {
+				if err = tx.SetGauge(obj.ID, obj.Value); err != nil {
 					bh.log.Errorf("Error set gauge (tx): %s (%T)", err, err)
 					if err = tx.RollBack(); err != nil {
 						bh.log.Errorf("Failed to rollback transaction [gauge]: %s (%T)", err, err)
@@ -52,7 +52,7 @@ func (bh baseHandler) Updates() gin.HandlerFunc {
 					return
 				}
 			} else if obj.MType == string(models.CounterType) {
-				if err = tx.AddCounter(obj.ID, *obj.Delta); err != nil {
+				if err = tx.AddCounter(obj.ID, obj.Delta); err != nil {
 					bh.log.Errorf("Error add counter (tx): %s (%T)", err, err)
 					if err = tx.RollBack(); err != nil {
 						bh.log.Errorf("Failed to rollback transaction [counter]: %s (%T)", err, err)

@@ -80,9 +80,11 @@ func TestValue(t *testing.T) {
 			if tt.metricName != "" {
 				switch tt.metricType {
 				case models.CounterType:
-					_ = storage.AddCounter(tt.metricName, tt.metricValue.(int64))
+					delta := tt.metricValue.(int64)
+					_ = storage.AddCounter(tt.metricName, &delta)
 				case models.GaugeType:
-					_ = storage.SetGauge(tt.metricName, tt.metricValue.(float64))
+					value := tt.metricValue.(float64)
+					_ = storage.SetGauge(tt.metricName, &value)
 				}
 			}
 
@@ -97,8 +99,8 @@ func TestValue(t *testing.T) {
 			body, err := io.ReadAll(res.Body)
 			require.NoError(t, err)
 
-			assert.Equal(t, res.StatusCode, tt.wantedStatusCode)
-			assert.Equal(t, string(body), tt.wantedBody)
+			assert.Equal(t, tt.wantedStatusCode, res.StatusCode)
+			assert.Equal(t, tt.wantedBody, string(body))
 		})
 	}
 }
@@ -160,9 +162,11 @@ func TestValueByBody(t *testing.T) {
 			if tt.metricName != "" {
 				switch tt.metricType {
 				case models.CounterType:
-					_ = storage.AddCounter(tt.metricName, tt.metricValue.(int64))
+					delta := tt.metricValue.(int64)
+					_ = storage.AddCounter(tt.metricName, &delta)
 				case models.GaugeType:
-					_ = storage.SetGauge(tt.metricName, tt.metricValue.(float64))
+					value := tt.metricValue.(float64)
+					_ = storage.SetGauge(tt.metricName, &value)
 				}
 			}
 

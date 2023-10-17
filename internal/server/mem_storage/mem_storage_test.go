@@ -38,7 +38,7 @@ func TestMemGetCounter(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.metricName != "" && tt.metricValue != 0 {
-				_ = storage.AddCounter(tt.metricName, tt.metricValue)
+				_ = storage.AddCounter(tt.metricName, &tt.metricValue)
 			}
 
 			got, err := storage.GetCounter(tt.metricName)
@@ -46,7 +46,7 @@ func TestMemGetCounter(t *testing.T) {
 				assert.NotNil(t, err)
 			} else {
 				require.NoError(t, err)
-				require.Equal(t, got, tt.metricValue)
+				require.Equal(t, tt.metricValue, *got)
 			}
 		})
 	}
@@ -84,7 +84,7 @@ func TestMem_GetGauge(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.metricName != "" && tt.metricValue != 0 {
-				_ = storage.SetGauge(tt.metricName, tt.metricValue)
+				_ = storage.SetGauge(tt.metricName, &tt.metricValue)
 			}
 
 			got, err := storage.GetGauge(tt.metricName)
@@ -92,7 +92,7 @@ func TestMem_GetGauge(t *testing.T) {
 				assert.NotNil(t, err)
 			} else {
 				require.NoError(t, err)
-				require.Equal(t, got, tt.metricValue)
+				require.Equal(t, tt.metricValue, *got)
 			}
 		})
 	}

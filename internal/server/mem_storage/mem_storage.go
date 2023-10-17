@@ -11,16 +11,16 @@ import (
 )
 
 type MemStorage struct {
-	gauge   map[string]float64
-	counter map[string]int64
+	gauge   map[string]*float64
+	counter map[string]*int64
 
 	mx sync.Mutex
 }
 
 func NewMem() *MemStorage {
 	return &MemStorage{
-		gauge:   make(map[string]float64),
-		counter: make(map[string]int64),
+		gauge:   make(map[string]*float64),
+		counter: make(map[string]*int64),
 	}
 }
 
@@ -35,7 +35,7 @@ func (mStorage *MemStorage) NewTx() (models.StorageTx, error) {
 	}, nil
 }
 
-func (mStorage *MemStorage) GetGauge(name string) (float64, error) {
+func (mStorage *MemStorage) GetGauge(name string) (*float64, error) {
 	mStorage.mx.Lock()
 	defer mStorage.mx.Unlock()
 
@@ -43,13 +43,13 @@ func (mStorage *MemStorage) GetGauge(name string) (float64, error) {
 
 	value, ok := mStorage.gauge[name]
 	if !ok {
-		return 0, errs.ErrStorageInvalidGaugeName
+		return nil, errs.ErrStorageInvalidGaugeName
 	}
 
 	return value, nil
 }
 
-func (mStorage *MemStorage) SetGauge(name string, value float64) error {
+func (mStorage *MemStorage) SetGauge(name string, value *float64) error {
 	mStorage.mx.Lock()
 	defer mStorage.mx.Unlock()
 
@@ -59,7 +59,7 @@ func (mStorage *MemStorage) SetGauge(name string, value float64) error {
 	return nil
 }
 
-func (mStorage *MemStorage) GetCounter(name string) (int64, error) {
+func (mStorage *MemStorage) GetCounter(name string) (*int64, error) {
 	mStorage.mx.Lock()
 	defer mStorage.mx.Unlock()
 
@@ -67,44 +67,48 @@ func (mStorage *MemStorage) GetCounter(name string) (int64, error) {
 	value, ok := mStorage.counter[name]
 
 	if !ok {
-		return 0, errs.ErrStorageInvalidCounterName
+		return nil, errs.ErrStorageInvalidCounterName
 	}
 
 	return value, nil
 }
 
-func (mStorage *MemStorage) AddCounter(name string, value int64) error {
-	name = mStorage.normalizeName(name)
-	_, err := mStorage.GetCounter(name)
-
+func (mStorage *MemStorage) AddCounter(name string, value *int64) error {
 	mStorage.mx.Lock()
 	defer mStorage.mx.Unlock()
 
-	if err != nil {
+	name = mStorage.normalizeName(name)
+	currentValue, ok := mStorage.counter[name]
+
+	if !ok {
 		mStorage.counter[name] = value
 	} else {
-		mStorage.counter[name] += value
+		newValue := (*currentValue) + (*value)
+		mStorage.counter[name] = &newValue
 	}
 
 	return nil
 }
 
 func (mStorage *MemStorage) GetAll() ([]models.MetricsValue, error) {
+	mStorage.mx.Lock()
+	defer mStorage.mx.Unlock()
+
 	var values []models.MetricsValue
 
-	for k, v := range mStorage.gauge {
+	for k, value := range mStorage.gauge {
 		values = append(values, models.MetricsValue{
 			ID:    k,
 			MType: string(models.GaugeType),
-			Value: &v,
+			Value: value,
 		})
 	}
 
-	for k, v := range mStorage.counter {
+	for k, delta := range mStorage.counter {
 		values = append(values, models.MetricsValue{
 			ID:    k,
 			MType: string(models.CounterType),
-			Delta: &v,
+			Delta: delta,
 		})
 	}
 

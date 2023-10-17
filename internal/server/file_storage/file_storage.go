@@ -15,7 +15,7 @@ import (
 	"time"
 )
 
-var retries = []int{1, 3, 6}
+var retries = []int{1, 3, 5}
 
 type (
 	fileStorage struct {
@@ -89,9 +89,9 @@ func (fStorage *fileStorage) Restore() error {
 	for _, metric := range metrics {
 		switch metric.MType {
 		case string(models.GaugeType):
-			_ = fStorage.SetGauge(metric.ID, *metric.Value)
+			_ = fStorage.SetGauge(metric.ID, metric.Value)
 		case string(models.CounterType):
-			_ = fStorage.AddCounter(metric.ID, *metric.Delta)
+			_ = fStorage.AddCounter(metric.ID, metric.Delta)
 		default:
 			errorsCount++
 			fStorage.log.Errorf("The metric couldn't be restored, it has an unknown type: %+v", metrics)
