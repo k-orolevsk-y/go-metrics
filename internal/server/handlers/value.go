@@ -10,12 +10,15 @@ import (
 func (bh baseHandler) ValueByURI() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		if !bh.validateContentType(ctx, "text/plain", true) {
+			bh.log.Debugf("Request with invalid content-type.")
 			bh.handleBadRequest(ctx)
 			return
 		}
 
 		id := ctx.Param("name")
 		if id == "" {
+			bh.log.Debugf("The required name parameter is not specified.")
+
 			ctx.Status(http.StatusNotFound)
 			ctx.Abort()
 
@@ -46,6 +49,7 @@ func (bh baseHandler) ValueByURI() gin.HandlerFunc {
 
 			response = *value
 		} else {
+			bh.log.Debugf("An invalid metric type was passed.")
 			bh.handleBadRequest(ctx)
 			return
 		}
@@ -58,6 +62,7 @@ func (bh baseHandler) ValueByURI() gin.HandlerFunc {
 func (bh baseHandler) ValueByBody() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		if !bh.validateContentType(ctx, "application/json", false) {
+			bh.log.Debugf("Request with invalid content-type.")
 			bh.handleBadRequest(ctx)
 			return
 		}

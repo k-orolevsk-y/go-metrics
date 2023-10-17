@@ -9,6 +9,7 @@ import (
 func (bh baseHandler) Updates() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		if !bh.validateContentType(ctx, "application/json", false) {
+			bh.log.Debugf("Request with invalid content-type.")
 			bh.handleBadRequest(ctx)
 			return
 		}
@@ -32,6 +33,8 @@ func (bh baseHandler) Updates() gin.HandlerFunc {
 
 		tx, err := bh.storage.NewTx()
 		if err != nil {
+			bh.log.Debugf("Failed to create transaction: %s (%T)", err, err)
+
 			ctx.Status(http.StatusInternalServerError)
 			ctx.Abort()
 

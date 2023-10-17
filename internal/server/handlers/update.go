@@ -10,12 +10,15 @@ import (
 func (bh baseHandler) UpdateByURI() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		if !bh.validateContentType(ctx, "text/plain", true) {
+			bh.log.Debugf("Request with invalid content-type.")
 			bh.handleBadRequest(ctx)
 			return
 		}
 
 		id := ctx.Param("name")
 		if id == "" {
+			bh.log.Debugf("The required name parameter is not specified.")
+
 			ctx.Status(http.StatusNotFound)
 			ctx.Abort()
 
@@ -26,6 +29,7 @@ func (bh baseHandler) UpdateByURI() gin.HandlerFunc {
 		if storageType == string(models.GaugeType) {
 			value, err := strconv.ParseFloat(ctx.Param("value"), 64)
 			if err != nil {
+				bh.log.Debugf("The value parameter is not parsed as a float64 value.")
 				bh.handleBadRequest(ctx)
 				return
 			}
@@ -41,6 +45,7 @@ func (bh baseHandler) UpdateByURI() gin.HandlerFunc {
 		} else if storageType == string(models.CounterType) {
 			value, err := strconv.ParseInt(ctx.Param("value"), 0, 64)
 			if err != nil {
+				bh.log.Debugf("The value parameter is not parsed as a int64 value.")
 				bh.handleBadRequest(ctx)
 				return
 			}
@@ -54,6 +59,7 @@ func (bh baseHandler) UpdateByURI() gin.HandlerFunc {
 				return
 			}
 		} else {
+			bh.log.Debugf("An invalid metric type was passed.")
 			bh.handleBadRequest(ctx)
 			return
 		}
@@ -66,6 +72,7 @@ func (bh baseHandler) UpdateByURI() gin.HandlerFunc {
 func (bh baseHandler) UpdateByBody() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		if !bh.validateContentType(ctx, "application/json", false) {
+			bh.log.Debugf("Request with invalid content-type.")
 			bh.handleBadRequest(ctx)
 			return
 		}

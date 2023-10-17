@@ -13,7 +13,7 @@ func (bh baseHandler) Values() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		values, err := bh.storage.GetAll()
 		if err != nil {
-			bh.log.Errorf("Error get all metrics: %s", err)
+			bh.log.Debugf("Error get all metrics: %s", err)
 
 			ctx.Status(http.StatusInternalServerError)
 			ctx.Abort()
@@ -35,7 +35,7 @@ func (bh baseHandler) Values() gin.HandlerFunc {
 		ctx.Header("Content-Type", "text/html; charset=utf-8")
 
 		if _, err := io.Copy(ctx.Writer, strings.NewReader(text)); err != nil {
-			bh.log.Errorf("io.Copy() error: %s", err)
+			bh.log.Debugf("io.Copy() error: %s", err)
 			ctx.String(http.StatusInternalServerError, "%s", "Internal server error")
 		}
 

@@ -14,18 +14,19 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	sugarLogger.Debugf("The logger has been successfully initialized and configured.")
 
 	config.Load()
 	if err = config.Parse(); err != nil {
 		sugarLogger.Panicf("Failed loading config: %s", err)
 	}
+	sugarLogger.Debugf("The config was successfully received and configured.")
 
 	store, err := storage.Setup(sugarLogger)
 	if err != nil {
 		sugarLogger.Panicf("Failed setup storage: %s", err)
-	} else {
-		sugarLogger.Debugf("Selected storage: %s", store)
 	}
+	sugarLogger.Debugf("Selected storage: %s", store)
 
 	defer func() {
 		if err = sugarLogger.Sync(); err != nil {
@@ -42,7 +43,6 @@ func main() {
 	handlers.Setup(r)
 
 	sugarLogger.Debugf("Server routing is configured and sent to launch on: %s", config.Config.Address)
-
 	if err = r.Run(config.Config.Address); err != nil {
 		sugarLogger.Panicf("Failed start server: %s", err)
 	}

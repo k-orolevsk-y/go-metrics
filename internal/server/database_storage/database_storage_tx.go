@@ -62,6 +62,7 @@ func (t *tx) Commit() (err error) {
 		time.Sleep(time.Duration(timeSleep) * time.Second)
 	}
 
+	t.log.Debugf("The transaction was completed successfully.")
 	return
 }
 
@@ -78,5 +79,6 @@ func (t *tx) RollBack() (err error) {
 		time.Sleep(time.Duration(timeSleep) * time.Second)
 	}
 
+	t.log.Debugf("Transaction cancelled.")
 	return
 }

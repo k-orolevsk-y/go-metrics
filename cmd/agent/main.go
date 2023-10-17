@@ -14,6 +14,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	sugarLogger.Debugf("The logger has been successfully initialized and configured.")
 
 	defer func() {
 		if err = sugarLogger.Sync(); err != nil {
@@ -25,11 +26,13 @@ func main() {
 	if err = config.Parse(); err != nil {
 		sugarLogger.Panicf("Failed loading config: %s", err)
 	}
+	sugarLogger.Debugf("The config was successfully received and configured.")
 
 	client := resty.New()
 	store := metrics.NewRuntimeMetrics()
 
 	go func() {
+		sugarLogger.Debugf("Metrics collector successfully initialized.")
 		for {
 			time.Sleep(time.Second * time.Duration(config.Config.PollInterval))
 
@@ -40,6 +43,8 @@ func main() {
 	}()
 
 	updater := metricsupdater.New(client, store, sugarLogger)
+	sugarLogger.Debugf("Metrics updater successfully initialized.")
+
 	for {
 		time.Sleep(time.Second * time.Duration(config.Config.ReportInterval))
 		updater.UpdateMetrics()

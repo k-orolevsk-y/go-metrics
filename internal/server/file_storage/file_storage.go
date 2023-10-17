@@ -9,6 +9,7 @@ import (
 	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/config"
 	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/mem_storage"
 	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/models"
+	"github.com/k-orolevsk-y/go-metricts-tpl/pkg/logger"
 	"io"
 	"os"
 	"strings"
@@ -22,19 +23,14 @@ type (
 		*memstorage.MemStorage
 
 		file *os.File
-		log  logger
+		log  logger.Logger
 
 		encoder *json.Encoder
 		decoder *json.Decoder
 	}
-
-	logger interface {
-		Infof(template string, args ...interface{})
-		Errorf(template string, args ...interface{})
-	}
 )
 
-func New(log logger) (*fileStorage, error) {
+func New(log logger.Logger) (*fileStorage, error) {
 	file, err := os.OpenFile(config.Config.FileStoragePath, os.O_RDWR|os.O_CREATE, 0666)
 	if err != nil {
 		return nil, err
@@ -110,6 +106,8 @@ func (fStorage *fileStorage) Start() {
 
 	go func() {
 		ticker := time.NewTicker(time.Second * time.Duration(storeInterval))
+		fStorage.log.Debugf("A ticker was created and launched to update the metrics in the file")
+
 		for range ticker.C {
 			if count, err := fStorage.update(); err != nil {
 				fStorage.log.Errorf("Failed to save metrics to file: %s", err)
@@ -165,6 +163,7 @@ func (fStorage *fileStorage) Ping(_ context.Context) error {
 }
 
 func (fStorage *fileStorage) GetMiddleware() gin.HandlerFunc {
+	fStorage.log.Debugf("Created and received middleware to update metrics after a request.")
 	return func(ctx *gin.Context) {
 		storeInterval := config.Config.StoreInterval
 		if storeInterval > 0 {

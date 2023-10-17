@@ -46,10 +46,14 @@ func New(db *sqlx.DB, log logger.Logger) (*databaseStorage, error) {
 
 	if _, err := dbStorage.db.ExecContext(ctx, schema); err != nil {
 		return nil, err
+	} else {
+		dbStorage.log.Debugf("The tables for the database were successfully created, if they not existed.")
 	}
 
 	if err := dbStorage.buildPrepares(ctx); err != nil {
 		return nil, err
+	} else {
+		dbStorage.log.Debugf("SQL Requests are prepared.")
 	}
 
 	return dbStorage, nil
@@ -110,6 +114,7 @@ func (dbStorage *databaseStorage) NewTx() (models.StorageTx, error) {
 		return nil, err
 	}
 
+	dbStorage.log.Debugf("A new transaction has been successfully created.")
 	return t, nil
 }
 
