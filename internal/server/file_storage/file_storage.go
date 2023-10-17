@@ -15,6 +15,8 @@ import (
 	"time"
 )
 
+var retries = []int{1, 3, 6}
+
 type (
 	fileStorage struct {
 		*memstorage.MemStorage
@@ -55,16 +57,32 @@ func (fStorage *fileStorage) Close() error {
 }
 
 func (fStorage *fileStorage) Restore() error {
-	if err := fStorage.file.Sync(); err != nil {
-		return err
+	var (
+		errs    []error
+		metrics []models.MetricsValue
+	)
+
+	for _, timeSleep := range retries {
+		if err := fStorage.file.Sync(); err != nil {
+			errs = append(errs, err)
+		}
+
+		if err := fStorage.decoder.Decode(&metrics); err != nil {
+			if !errors.Is(err, io.EOF) {
+				errs = append(errs, err)
+			}
+		}
+
+		if len(errs) <= 0 {
+			break
+		}
+
+		fStorage.log.Errorf("Failed to restore metrics in file: %s. Retrying after %ds...", errors.Join(errs...), timeSleep)
+		time.Sleep(time.Duration(timeSleep) * time.Second)
 	}
 
-	var metrics []models.MetricsValue
-	if err := fStorage.decoder.Decode(&metrics); err != nil {
-		if errors.Is(err, io.EOF) {
-			return nil
-		}
-		return err
+	if len(errs) > 0 {
+		return errors.Join(errs...)
 	}
 
 	var errorsCount int
@@ -103,21 +121,35 @@ func (fStorage *fileStorage) Start() {
 }
 
 func (fStorage *fileStorage) update() (int, error) {
-	if err := fStorage.file.Truncate(0); err != nil {
-		return 0, err
-	}
-
-	if _, err := fStorage.file.Seek(0, 0); err != nil {
-		return 0, err
-	}
-
 	metrics, err := fStorage.GetAll()
 	if err != nil {
 		return 0, err
 	}
 
-	if err = fStorage.encoder.Encode(&metrics); err != nil {
-		return 0, err
+	var errs []error
+	for _, timeSleep := range retries {
+		if err = fStorage.file.Truncate(0); err != nil {
+			errs = append(errs, err)
+		}
+
+		if _, err = fStorage.file.Seek(0, 0); err != nil {
+			errs = append(errs, err)
+		}
+
+		if err = fStorage.encoder.Encode(&metrics); err != nil {
+			errs = append(errs, err)
+		}
+
+		if len(errs) <= 0 {
+			break
+		}
+
+		fStorage.log.Errorf("Failed to update metrics in file: %s. Retrying after %ds...", errors.Join(errs...), timeSleep)
+		time.Sleep(time.Duration(timeSleep) * time.Second)
+	}
+
+	if len(errs) > 0 {
+		return 0, errors.Join(errs...)
 	}
 
 	return len(metrics), nil

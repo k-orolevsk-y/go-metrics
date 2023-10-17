@@ -9,9 +9,11 @@ import (
 	"github.com/k-orolevsk-y/go-metricts-tpl/internal/agent/models"
 	"github.com/k-orolevsk-y/go-metricts-tpl/pkg/logger"
 	"net/http"
+	"time"
 )
 
 var (
+	retries                = []int{1, 3, 6}
 	ErrorInvalidStatusCode = errors.New("invalid status code")
 )
 
@@ -43,19 +45,27 @@ func (u Updater) UpdateMetrics() {
 }
 
 func (u Updater) updateMetrics(metricForUpdate []metrics.Metric) error {
+	url := fmt.Sprintf("http://%s/updates", config.Config.Address)
 	body := u.parseMetrics(metricForUpdate)
 
-	url := fmt.Sprintf("http://%s/updates", config.Config.Address)
-	resp, err := u.client.R().
-		SetBody(body).
-		Post(url)
-	if err != nil {
-		return err
-	} else if resp.StatusCode() != http.StatusOK {
-		return ErrorInvalidStatusCode
+	var err error
+	for _, timeSleep := range retries {
+		resp, err := u.client.R().
+			SetBody(body).
+			Post(url)
+		if err == nil {
+			if resp.StatusCode() != http.StatusOK {
+				return ErrorInvalidStatusCode
+			} else {
+				return nil
+			}
+		}
+
+		u.log.Errorf("Failed to send metrics to server: %s. Retrying after %ds...", err, timeSleep)
+		time.Sleep(time.Duration(timeSleep) * time.Second)
 	}
 
-	return nil
+	return err
 }
 
 func (u Updater) parseMetrics(metricsForParse []metrics.Metric) *[]models.Metrics {

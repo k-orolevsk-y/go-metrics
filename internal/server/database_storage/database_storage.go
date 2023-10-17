@@ -2,11 +2,15 @@ package dbstorage
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgerrcode"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jmoiron/sqlx"
 	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/models"
 	"github.com/k-orolevsk-y/go-metricts-tpl/pkg/logger"
+	"net"
 	"time"
 )
 
@@ -77,7 +81,14 @@ func (dbStorage *databaseStorage) buildPrepares(ctx context.Context) error {
 }
 
 func (dbStorage *databaseStorage) Close() error {
-	return dbStorage.db.Close()
+	var errs []error
+
+	errs = append(errs, dbStorage.prepares.getGaugeMetric.Close())
+	errs = append(errs, dbStorage.prepares.getCounterMetric.Close())
+	errs = append(errs, dbStorage.prepares.setOrUpdateMetric.Close())
+	errs = append(errs, dbStorage.db.Close())
+
+	return errors.Join(errs...)
 }
 
 func (dbStorage *databaseStorage) NewTx() (models.StorageTx, error) {
@@ -88,6 +99,7 @@ func (dbStorage *databaseStorage) NewTx() (models.StorageTx, error) {
 
 	t := &tx{
 		txDB: txDB,
+		log:  dbStorage.log,
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
@@ -101,27 +113,77 @@ func (dbStorage *databaseStorage) NewTx() (models.StorageTx, error) {
 }
 
 func (dbStorage *databaseStorage) SetGauge(name string, value float64) (err error) {
-	_, err = dbStorage.prepares.setOrUpdateMetric.ExecContext(context.Background(), map[string]interface{}{"name": name, "mtype": "gauge", "delta": 0, "value": value})
-	return err
+	for _, timeSleep := range maximumNumberOfRetries {
+		_, err = dbStorage.prepares.setOrUpdateMetric.ExecContext(context.Background(), map[string]interface{}{"name": name, "mtype": "gauge", "delta": 0, "value": value})
+
+		ok, parsedErr := parseRetriableError(err)
+		if !ok {
+			return
+		}
+
+		dbStorage.log.Errorf("Error set gauge metric %s: \"%s\". Retrying %ds...", name, parsedErr, timeSleep)
+		time.Sleep(time.Duration(timeSleep) * time.Second)
+	}
+	return
 }
 
 func (dbStorage *databaseStorage) AddCounter(name string, value int64) (err error) {
-	_, err = dbStorage.prepares.setOrUpdateMetric.ExecContext(context.Background(), map[string]interface{}{"name": name, "mtype": "counter", "delta": value, "value": 0.0})
+	for _, timeSleep := range maximumNumberOfRetries {
+		_, err = dbStorage.prepares.setOrUpdateMetric.ExecContext(context.Background(), map[string]interface{}{"name": name, "mtype": "counter", "delta": value, "value": 0.0})
+
+		ok, parsedErr := parseRetriableError(err)
+		if !ok {
+			return
+		}
+
+		dbStorage.log.Errorf("Error add counter metric %s: \"%s\". Retrying after %ds...", name, parsedErr, timeSleep)
+		time.Sleep(time.Duration(timeSleep) * time.Second)
+	}
 	return
 }
 
 func (dbStorage *databaseStorage) GetGauge(name string) (value float64, err error) {
-	err = dbStorage.prepares.getGaugeMetric.GetContext(context.Background(), &value, map[string]interface{}{"name": name})
+	for _, timeSleep := range maximumNumberOfRetries {
+		err = dbStorage.prepares.getGaugeMetric.GetContext(context.Background(), &value, map[string]interface{}{"name": name})
+
+		ok, parsedErr := parseRetriableError(err)
+		if !ok {
+			return
+		}
+
+		dbStorage.log.Errorf("Error get gauge metric %s: \"%s\". Retrying after %ds...", name, parsedErr, timeSleep)
+		time.Sleep(time.Duration(timeSleep) * time.Second)
+	}
 	return
 }
 
 func (dbStorage *databaseStorage) GetCounter(name string) (value int64, err error) {
-	err = dbStorage.prepares.getCounterMetric.GetContext(context.Background(), &value, map[string]interface{}{"name": name})
+	for _, timeSleep := range maximumNumberOfRetries {
+		err = dbStorage.prepares.getCounterMetric.GetContext(context.Background(), &value, map[string]interface{}{"name": name})
+
+		ok, parsedErr := parseRetriableError(err)
+		if !ok {
+			return
+		}
+
+		dbStorage.log.Errorf("Error get counter metric %s: \"%s\". Retrying after %ds...", name, parsedErr, timeSleep)
+		time.Sleep(time.Duration(timeSleep) * time.Second)
+	}
 	return
 }
 
 func (dbStorage *databaseStorage) GetAll() (metrics []models.MetricsValue, err error) {
-	err = dbStorage.db.SelectContext(context.Background(), &metrics, "SELECT name, mtype, delta, value FROM metrics")
+	for _, timeSleep := range maximumNumberOfRetries {
+		err = dbStorage.db.SelectContext(context.Background(), &metrics, "SELECT name, mtype, delta, value FROM metrics")
+
+		ok, parsedErr := parseRetriableError(err)
+		if !ok {
+			return
+		}
+
+		dbStorage.log.Errorf("Error get all metrics: \"%s\". Retrying after %ds...", parsedErr, timeSleep)
+		time.Sleep(time.Duration(timeSleep) * time.Second)
+	}
 	return
 }
 
@@ -142,4 +204,22 @@ func (dbStorage *databaseStorage) String() string {
 	}
 
 	return fmt.Sprintf("DBStorage - %s", databaseName)
+}
+
+func parseRetriableError(err error) (bool, *DatabaseError) {
+	if err == nil {
+		return false, nil
+	}
+
+	var opErr *net.OpError
+	if errors.As(err, &opErr) {
+		return true, newDatabaseError("net.OpError", opErr)
+	}
+
+	var pgErr *pgconn.PgError
+	if !errors.As(err, &pgErr) || !pgerrcode.IsConnectionException(pgErr.Code) {
+		return false, nil
+	}
+
+	return true, newDatabaseError("pgconn.PgError", pgErr)
 }
