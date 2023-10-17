@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/config"
 	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/mem_storage"
@@ -15,8 +16,8 @@ import (
 )
 
 type (
-	Storage struct {
-		*memstorage.Mem
+	fileStorage struct {
+		*memstorage.MemStorage
 
 		file *os.File
 		log  logger
@@ -31,15 +32,15 @@ type (
 	}
 )
 
-func New(log logger) (*Storage, error) {
+func New(log logger) (*fileStorage, error) {
 	file, err := os.OpenFile(config.Config.FileStoragePath, os.O_RDWR|os.O_CREATE, 0666)
 	if err != nil {
 		return nil, err
 	}
 	store := memstorage.NewMem()
 
-	return &Storage{
-		Mem: store,
+	return &fileStorage{
+		MemStorage: store,
 
 		file: file,
 		log:  log,
@@ -49,17 +50,17 @@ func New(log logger) (*Storage, error) {
 	}, nil
 }
 
-func (s *Storage) Close() error {
-	return s.file.Close()
+func (fStorage *fileStorage) Close() error {
+	return fStorage.file.Close()
 }
 
-func (s *Storage) Restore() error {
-	if err := s.file.Sync(); err != nil {
+func (fStorage *fileStorage) Restore() error {
+	if err := fStorage.file.Sync(); err != nil {
 		return err
 	}
 
 	var metrics []models.MetricsValue
-	if err := s.decoder.Decode(&metrics); err != nil {
+	if err := fStorage.decoder.Decode(&metrics); err != nil {
 		if errors.Is(err, io.EOF) {
 			return nil
 		}
@@ -70,20 +71,20 @@ func (s *Storage) Restore() error {
 	for _, metric := range metrics {
 		switch metric.MType {
 		case string(models.GaugeType):
-			_ = s.SetGauge(metric.ID, *metric.Value)
+			_ = fStorage.SetGauge(metric.ID, *metric.Value)
 		case string(models.CounterType):
-			_ = s.AddCounter(metric.ID, *metric.Delta)
+			_ = fStorage.AddCounter(metric.ID, *metric.Delta)
 		default:
 			errorsCount++
-			s.log.Errorf("The metric couldn't be restored, it has an unknown type: %+v", metrics)
+			fStorage.log.Errorf("The metric couldn't be restored, it has an unknown type: %+v", metrics)
 		}
 	}
 
-	s.log.Infof("Successfully retrieved metrics (%d) from the file.", len(metrics)-errorsCount)
+	fStorage.log.Infof("Successfully retrieved metrics (%d) from the file.", len(metrics)-errorsCount)
 	return nil
 }
 
-func (s *Storage) Start() {
+func (fStorage *fileStorage) Start() {
 	storeInterval := config.Config.StoreInterval
 	if storeInterval <= 0 {
 		return
@@ -92,38 +93,38 @@ func (s *Storage) Start() {
 	go func() {
 		ticker := time.NewTicker(time.Second * time.Duration(storeInterval))
 		for range ticker.C {
-			if count, err := s.update(); err != nil {
-				s.log.Errorf("Failed to save metrics to file: %s", err)
+			if count, err := fStorage.update(); err != nil {
+				fStorage.log.Errorf("Failed to save metrics to file: %s", err)
 			} else {
-				s.log.Infof("Metrics (%d) are successfully synchronized and written to file.", count)
+				fStorage.log.Infof("Metrics (%d) are successfully synchronized and written to file.", count)
 			}
 		}
 	}()
 }
 
-func (s *Storage) update() (int, error) {
-	if err := s.file.Truncate(0); err != nil {
+func (fStorage *fileStorage) update() (int, error) {
+	if err := fStorage.file.Truncate(0); err != nil {
 		return 0, err
 	}
 
-	if _, err := s.file.Seek(0, 0); err != nil {
+	if _, err := fStorage.file.Seek(0, 0); err != nil {
 		return 0, err
 	}
 
-	metrics, err := s.GetAll()
+	metrics, err := fStorage.GetAll()
 	if err != nil {
 		return 0, err
 	}
 
-	if err = s.encoder.Encode(&metrics); err != nil {
+	if err = fStorage.encoder.Encode(&metrics); err != nil {
 		return 0, err
 	}
 
 	return len(metrics), nil
 }
 
-func (s *Storage) Ping(_ context.Context) error {
-	_, err := s.file.Stat()
+func (fStorage *fileStorage) Ping(_ context.Context) error {
+	_, err := fStorage.file.Stat()
 	if os.IsNotExist(err) {
 		return err
 	}
@@ -131,7 +132,7 @@ func (s *Storage) Ping(_ context.Context) error {
 	return nil
 }
 
-func (s *Storage) GetMiddleware() gin.HandlerFunc {
+func (fStorage *fileStorage) GetMiddleware() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		storeInterval := config.Config.StoreInterval
 		if storeInterval > 0 {
@@ -142,10 +143,14 @@ func (s *Storage) GetMiddleware() gin.HandlerFunc {
 
 		ctx.Next()
 
-		if count, err := s.update(); err != nil {
-			s.log.Errorf("Failed to save metrics to file: %s", err)
+		if count, err := fStorage.update(); err != nil {
+			fStorage.log.Errorf("Failed to save metrics to file: %s", err)
 		} else {
-			s.log.Infof("Metrics (%d) are successfully synchronized and written to file.", count)
+			fStorage.log.Infof("Metrics (%d) are successfully synchronized and written to file.", count)
 		}
 	}
+}
+
+func (fStorage *fileStorage) String() string {
+	return fmt.Sprintf("FileStorage - %s", fStorage.file.Name())
 }

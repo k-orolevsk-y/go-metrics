@@ -1,12 +1,14 @@
 package metricsupdater
 
 import (
+	"bytes"
 	"github.com/go-resty/resty/v2"
 	"github.com/k-orolevsk-y/go-metricts-tpl/internal/agent/config"
 	"github.com/k-orolevsk-y/go-metricts-tpl/internal/agent/metrics"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.uber.org/zap/zaptest"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	"net"
 	"net/http"
 	"net/http/httptest"
@@ -19,34 +21,30 @@ func handlerServer(w http.ResponseWriter, _ *http.Request) {
 }
 
 func TestUpdater_updateMetric(t *testing.T) {
-	type args struct {
-		name   string
-		metric metrics.Metric
-	}
 	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
+		name      string
+		metrics   []metrics.Metric
+		wantedErr bool
 	}{
 		{
-			name:    "Positive Gauge Test",
-			args:    args{"TestGauge", metrics.Metric{Type: metrics.GaugeType, Value: float64(0.5)}},
-			wantErr: false,
+			name:      "Positive Gauge Test",
+			metrics:   []metrics.Metric{{Name: "TestGaugePositive", Type: metrics.GaugeType, Value: float64(0.5)}},
+			wantedErr: false,
 		},
 		{
-			name:    "Positive Counter Test",
-			args:    args{"TestCounter", metrics.Metric{Type: metrics.CounterType, Value: int64(1)}},
-			wantErr: false,
+			name:      "Positive Counter Test",
+			metrics:   []metrics.Metric{{Name: "TestCounterPositive", Type: metrics.CounterType, Value: int64(1)}},
+			wantedErr: false,
 		},
 		{
-			name:    "Negative Gauge Test",
-			args:    args{"TestGauge", metrics.Metric{Type: metrics.GaugeType, Value: int64(10)}},
-			wantErr: true,
+			name:      "Negative Gauge Test",
+			metrics:   []metrics.Metric{{Name: "TestGaugeNegative", Type: metrics.GaugeType, Value: int64(10)}},
+			wantedErr: true,
 		},
 		{
-			name:    "Positive Counter Test",
-			args:    args{"TestCounter", metrics.Metric{Type: metrics.CounterType, Value: float64(5.10)}},
-			wantErr: true,
+			name:      "Negative Counter Test",
+			metrics:   []metrics.Metric{{Name: "TestCounterNegative", Type: metrics.CounterType, Value: float64(5.10)}},
+			wantedErr: true,
 		},
 	}
 
@@ -68,17 +66,26 @@ func TestUpdater_updateMetric(t *testing.T) {
 	server.Start()
 	defer server.Close()
 
+	buf := new(bytes.Buffer)
+	log := zap.New(zapcore.NewCore(
+		zapcore.NewConsoleEncoder(zap.NewDevelopmentEncoderConfig()),
+		zapcore.AddSync(buf),
+		zapcore.DebugLevel),
+		zap.AddCaller(),
+	)
+
 	client := resty.New()
-	updater := New(client, nil, zaptest.NewLogger(t).Sugar())
+	updater := New(client, nil, log.Sugar())
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err = updater.updateMetric(tt.args.name, tt.args.metric)
-			if tt.wantErr {
-				assert.ErrorIs(t, err, ErrorInvalidMetricValueType)
-			} else {
-				assert.NoError(t, err)
+			assert.NoError(t, updater.updateMetrics(tt.metrics))
+
+			if tt.wantedErr {
+				require.Contains(t, buf.String(), "Invalid metric type:")
 			}
+
+			buf.Reset()
 		})
 	}
 }

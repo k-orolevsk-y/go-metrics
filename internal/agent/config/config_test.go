@@ -9,31 +9,30 @@ import (
 )
 
 func TestConfig(t *testing.T) {
-	type result struct {
-		Address        string
-		ReportInterval int
-		PollInterval   int
-	}
-
 	tests := []struct {
-		name   string
-		args   map[string]map[string]string
-		result result
+		name string
+
+		args map[string]map[string]string
+
+		wantedAddress        string
+		wantedPollInterval   int
+		wantedReportInterval int
 	}{
 		{
 			name: "Positive (without env & flags)",
+
 			args: map[string]map[string]string{
 				"env":  {},
 				"flag": {},
 			},
-			result: result{
-				Address:        "localhost:8080",
-				ReportInterval: 10,
-				PollInterval:   2,
-			},
+
+			wantedAddress:        "localhost:8080",
+			wantedPollInterval:   2,
+			wantedReportInterval: 10,
 		},
 		{
 			name: "Positive (with env & flags)",
+
 			args: map[string]map[string]string{
 				"env": {
 					"ADDRESS":         "localhost:8081",
@@ -46,14 +45,14 @@ func TestConfig(t *testing.T) {
 					"p": "4",
 				},
 			},
-			result: result{
-				Address:        "localhost:8081",
-				ReportInterval: 1,
-				PollInterval:   2,
-			},
+
+			wantedAddress:        "localhost:8081",
+			wantedPollInterval:   2,
+			wantedReportInterval: 1,
 		},
 		{
 			name: "Positive (with flags)",
+
 			args: map[string]map[string]string{
 				"flag": {
 					"a": "localhost:8082",
@@ -61,14 +60,14 @@ func TestConfig(t *testing.T) {
 					"p": "4",
 				},
 			},
-			result: result{
-				Address:        "localhost:8082",
-				ReportInterval: 3,
-				PollInterval:   4,
-			},
+
+			wantedAddress:        "localhost:8082",
+			wantedPollInterval:   4,
+			wantedReportInterval: 3,
 		},
 		{
 			name: "Positive (with env)",
+
 			args: map[string]map[string]string{
 				"env": {
 					"ADDRESS":         "localhost:9090",
@@ -76,11 +75,10 @@ func TestConfig(t *testing.T) {
 					"POLL_INTERVAL":   "200",
 				},
 			},
-			result: result{
-				Address:        "localhost:9090",
-				ReportInterval: 100,
-				PollInterval:   200,
-			},
+
+			wantedAddress:        "localhost:9090",
+			wantedPollInterval:   200,
+			wantedReportInterval: 100,
 		},
 	}
 
@@ -105,9 +103,9 @@ func TestConfig(t *testing.T) {
 
 			require.NoError(t, Parse())
 
-			assert.Equal(t, tt.result.Address, Config.Address)
-			assert.Equal(t, tt.result.ReportInterval, Config.ReportInterval)
-			assert.Equal(t, tt.result.PollInterval, Config.PollInterval)
+			assert.Equal(t, tt.wantedAddress, Config.Address)
+			assert.Equal(t, tt.wantedPollInterval, Config.PollInterval)
+			assert.Equal(t, tt.wantedReportInterval, Config.ReportInterval)
 		})
 	}
 }

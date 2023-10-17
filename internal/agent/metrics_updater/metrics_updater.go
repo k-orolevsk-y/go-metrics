@@ -8,10 +8,11 @@ import (
 	"github.com/k-orolevsk-y/go-metricts-tpl/internal/agent/metrics"
 	"github.com/k-orolevsk-y/go-metricts-tpl/internal/agent/models"
 	"github.com/k-orolevsk-y/go-metricts-tpl/pkg/logger"
+	"net/http"
 )
 
 var (
-	ErrorInvalidMetricValueType = errors.New("invalid metric value type")
+	ErrorInvalidStatusCode = errors.New("invalid status code")
 )
 
 type (
@@ -22,9 +23,7 @@ type (
 	}
 
 	store interface {
-		GetRuntime() map[string]metrics.Metric
-		GetPollCount() metrics.Metric
-		GetRandomValue() metrics.Metric
+		GetMetrics() []metrics.Metric
 	}
 )
 
@@ -37,62 +36,61 @@ func New(client *resty.Client, store store, log logger.Logger) *Updater {
 }
 
 func (u Updater) UpdateMetrics() {
-	for k, v := range u.store.GetRuntime() {
-		if err := u.updateMetric(k, v); err != nil {
-			u.log.Errorf("Failed to update metric \"%s\": %s", k, err)
-		}
-	}
-
-	if err := u.updateMetric("PollCount", u.store.GetPollCount()); err != nil {
-		u.log.Errorf("Failed to update metric \"PollCount\": %s", err)
-	}
-
-	if err := u.updateMetric("RandomValue", u.store.GetRandomValue()); err != nil {
-		u.log.Errorf("Failed to update metric \"PollCount\": %s", err)
+	currentMetrics := u.store.GetMetrics()
+	if err := u.updateMetrics(currentMetrics); err != nil {
+		u.log.Errorf("Failed to update metrics: %s (%T)", err, err)
 	}
 }
 
-func (u Updater) updateMetric(name string, metric metrics.Metric) error {
-	body, err := u.parseMetric(name, metric)
-	if err != nil {
-		return err
-	}
+func (u Updater) updateMetrics(metricForUpdate []metrics.Metric) error {
+	body := u.parseMetrics(metricForUpdate)
 
-	url := fmt.Sprintf("http://%s/update", config.Config.Address)
-	_, err = u.client.R().
+	url := fmt.Sprintf("http://%s/updates", config.Config.Address)
+	resp, err := u.client.R().
 		SetBody(body).
 		Post(url)
 	if err != nil {
 		return err
+	} else if resp.StatusCode() != http.StatusOK {
+		return ErrorInvalidStatusCode
 	}
 
 	return nil
 }
 
-func (u Updater) parseMetric(name string, metric metrics.Metric) (*models.Metrics, error) {
-	var obj models.Metrics
-	obj.ID = name
+func (u Updater) parseMetrics(metricsForParse []metrics.Metric) *[]models.Metrics {
+	var objects []models.Metrics
 
-	switch metric.Value.(type) {
-	case float64:
-		if metric.Type != metrics.GaugeType {
-			return nil, ErrorInvalidMetricValueType
+	for _, metric := range metricsForParse {
+		var obj models.Metrics
+		obj.ID = metric.Name
+
+		switch metric.Value.(type) {
+		case float64:
+			if metric.Type != metrics.GaugeType {
+				u.log.Errorf("Invalid metric type: %s - %s != %T", metric.Name, metric.Type, metric.Value)
+				continue
+			}
+			value := metric.Value.(float64)
+
+			obj.MType = string(metrics.GaugeType)
+			obj.Value = &value
+		case int64:
+			if metric.Type != metrics.CounterType {
+				u.log.Errorf("Invalid metric type: %s - %s != %T", metric.Name, metric.Type, metric.Value)
+				continue
+			}
+			delta := metric.Value.(int64)
+
+			obj.MType = string(metrics.CounterType)
+			obj.Delta = &delta
+		default:
+			u.log.Errorf("Invalid metric type: %s - %s", metric.Name, metric.Type)
+			continue
 		}
-		value := metric.Value.(float64)
 
-		obj.MType = string(metrics.GaugeType)
-		obj.Value = &value
-	case int64:
-		if metric.Type != metrics.CounterType {
-			return nil, ErrorInvalidMetricValueType
-		}
-		delta := metric.Value.(int64)
-
-		obj.MType = string(metrics.CounterType)
-		obj.Delta = &delta
-	default:
-		return nil, ErrorInvalidMetricValueType
+		objects = append(objects, obj)
 	}
 
-	return &obj, nil
+	return &objects
 }

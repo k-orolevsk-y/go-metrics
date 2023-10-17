@@ -24,4 +24,5 @@ func (bh baseHandler) Ping() gin.HandlerFunc {
 
 		ctx.Abort()
 	}
+
 }

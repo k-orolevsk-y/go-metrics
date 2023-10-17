@@ -7,6 +7,7 @@ func New() (Logger, error) {
 	if err != nil {
 		return nil, err
 	}
+	l.Core().Enabled(zap.DebugLevel)
 
 	return l.Sugar(), nil
 }
@@ -15,5 +16,6 @@ type Logger interface {
 	Infof(template string, args ...interface{})
 	Errorf(template string, args ...interface{})
 	Panicf(template string, args ...interface{})
+	Debugf(template string, args ...interface{})
 	Sync() error
 }

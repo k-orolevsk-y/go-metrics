@@ -2,24 +2,13 @@ package dbstorage
 
 import (
 	"context"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/jmoiron/sqlx"
 	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/models"
 	"github.com/k-orolevsk-y/go-metricts-tpl/pkg/logger"
 	"time"
 )
-
-const schema = `
-	CREATE TABLE IF NOT EXISTS metrics (
-	    "id" SERIAL,
-		"name" TEXT NOT NULL,
-		"mtype" VARCHAR(12) NOT NULL DEFAULT 'gauge',
-		"delta" INTEGER NOT NULL DEFAULT 0,
-		"value" DOUBLE PRECISION NOT NULL DEFAULT 0.0,
-		CONSTRAINT unique_id_mtype UNIQUE (name, mtype),
-		PRIMARY KEY (id)
-	)
-`
 
 type (
 	databaseStorage struct {
@@ -46,6 +35,7 @@ func New(db *sqlx.DB, log logger.Logger) (*databaseStorage, error) {
 	defer cancel()
 
 	if err := dbStorage.Ping(ctx); err != nil {
+		dbStorage.log.Errorf("Failed to connect database to create table and prepare queries: %s", err)
 		return dbStorage, nil
 	}
 
@@ -62,14 +52,9 @@ func New(db *sqlx.DB, log logger.Logger) (*databaseStorage, error) {
 
 func (dbStorage *databaseStorage) buildPrepares(ctx context.Context) error {
 	preparesData := map[string]string{
-		"getGaugeMetric":   "SELECT value FROM metrics WHERE name = :name AND mtype = 'gauge'",
-		"getCounterMetric": "SELECT delta FROM metrics WHERE name = :name AND mtype = 'counter'",
-		"setOrUpdateMetric": `
-			INSERT INTO metrics (name, mtype, delta, value) 
-				VALUES (:name, :mtype, :delta, :value)
-			ON CONFLICT (name, mtype) DO 
-			    UPDATE SET delta = metrics.delta + excluded.delta, value = excluded.value 
-		`,
+		"getGaugeMetric":    getGaugeMetricSQLRequest,
+		"getCounterMetric":  getCounterMetricSQLRequest,
+		"setOrUpdateMetric": setOrUpdateMetricSQLRequest,
 	}
 
 	for key, sql := range preparesData {
@@ -93,6 +78,26 @@ func (dbStorage *databaseStorage) buildPrepares(ctx context.Context) error {
 
 func (dbStorage *databaseStorage) Close() error {
 	return dbStorage.db.Close()
+}
+
+func (dbStorage *databaseStorage) NewTx() (models.StorageTx, error) {
+	txDB, err := dbStorage.db.Beginx()
+	if err != nil {
+		return nil, err
+	}
+
+	t := &tx{
+		txDB: txDB,
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+	defer cancel()
+
+	if err = t.buildPrepares(ctx); err != nil {
+		return nil, err
+	}
+
+	return t, nil
 }
 
 func (dbStorage *databaseStorage) SetGauge(name string, value float64) (err error) {
@@ -126,4 +131,15 @@ func (dbStorage *databaseStorage) Ping(ctx context.Context) error {
 
 func (dbStorage *databaseStorage) GetMiddleware() gin.HandlerFunc {
 	return func(_ *gin.Context) {}
+}
+
+func (dbStorage *databaseStorage) String() string {
+	var databaseName string
+	_ = dbStorage.db.Get(&databaseName, "SELECT current_database()")
+
+	if databaseName == "" {
+		databaseName = "(Error: Invalid database name)"
+	}
+
+	return fmt.Sprintf("DBStorage - %s", databaseName)
 }

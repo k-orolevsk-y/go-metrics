@@ -9,14 +9,10 @@ import (
 )
 
 func TestConfig(t *testing.T) {
-	type result struct {
-		Address string
-	}
-
 	tests := []struct {
-		name   string
-		args   map[string]map[string]string
-		result result
+		name          string
+		args          map[string]map[string]string
+		wantedAddress string
 	}{
 		{
 			name: "Positive (without env & flags)",
@@ -24,9 +20,8 @@ func TestConfig(t *testing.T) {
 				"env":  {},
 				"flag": {},
 			},
-			result: result{
-				Address: "localhost:8080",
-			},
+
+			wantedAddress: "localhost:8080",
 		},
 		{
 			name: "Positive (with env & flags)",
@@ -38,9 +33,7 @@ func TestConfig(t *testing.T) {
 					"a": "localhost:8082",
 				},
 			},
-			result: result{
-				Address: "localhost:8081",
-			},
+			wantedAddress: "localhost:8081",
 		},
 		{
 			name: "Positive (with flags)",
@@ -49,9 +42,7 @@ func TestConfig(t *testing.T) {
 					"a": "localhost:8082",
 				},
 			},
-			result: result{
-				Address: "localhost:8082",
-			},
+			wantedAddress: "localhost:8082",
 		},
 		{
 			name: "Positive (with env)",
@@ -60,9 +51,7 @@ func TestConfig(t *testing.T) {
 					"ADDRESS": "localhost:9090",
 				},
 			},
-			result: result{
-				Address: "localhost:9090",
-			},
+			wantedAddress: "localhost:9090",
 		},
 	}
 
@@ -86,7 +75,7 @@ func TestConfig(t *testing.T) {
 			}
 
 			require.NoError(t, Parse())
-			assert.Equal(t, tt.result.Address, Config.Address)
+			assert.Equal(t, tt.wantedAddress, Config.Address)
 		})
 	}
 }

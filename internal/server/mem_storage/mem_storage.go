@@ -3,13 +3,14 @@ package memstorage
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/models"
 	"strings"
 	"sync"
 )
 
-type Mem struct {
+type MemStorage struct {
 	gauge   map[string]float64
 	counter map[string]int64
 
@@ -21,25 +22,31 @@ var (
 	ErrInvalidCounterName = errors.New("invalid counter name")
 )
 
-func NewMem() *Mem {
-	return &Mem{
+func NewMem() *MemStorage {
+	return &MemStorage{
 		gauge:   make(map[string]float64),
 		counter: make(map[string]int64),
 	}
 }
 
-func (m *Mem) Close() error {
-	*m = Mem{}
+func (mStorage *MemStorage) Close() error {
+	*mStorage = MemStorage{}
 	return nil
 }
 
-func (m *Mem) GetGauge(name string) (float64, error) {
-	m.mx.Lock()
-	defer m.mx.Unlock()
+func (mStorage *MemStorage) NewTx() (models.StorageTx, error) {
+	return &tx{
+		storage: mStorage,
+	}, nil
+}
 
-	name = m.normalizeName(name)
+func (mStorage *MemStorage) GetGauge(name string) (float64, error) {
+	mStorage.mx.Lock()
+	defer mStorage.mx.Unlock()
 
-	value, ok := m.gauge[name]
+	name = mStorage.normalizeName(name)
+
+	value, ok := mStorage.gauge[name]
 	if !ok {
 		return 0, ErrInvalidGaugeName
 	}
@@ -47,22 +54,22 @@ func (m *Mem) GetGauge(name string) (float64, error) {
 	return value, nil
 }
 
-func (m *Mem) SetGauge(name string, value float64) error {
-	m.mx.Lock()
-	defer m.mx.Unlock()
+func (mStorage *MemStorage) SetGauge(name string, value float64) error {
+	mStorage.mx.Lock()
+	defer mStorage.mx.Unlock()
 
-	name = m.normalizeName(name)
-	m.gauge[name] = value
+	name = mStorage.normalizeName(name)
+	mStorage.gauge[name] = value
 
 	return nil
 }
 
-func (m *Mem) GetCounter(name string) (int64, error) {
-	m.mx.Lock()
-	defer m.mx.Unlock()
+func (mStorage *MemStorage) GetCounter(name string) (int64, error) {
+	mStorage.mx.Lock()
+	defer mStorage.mx.Unlock()
 
-	name = m.normalizeName(name)
-	value, ok := m.counter[name]
+	name = mStorage.normalizeName(name)
+	value, ok := mStorage.counter[name]
 
 	if !ok {
 		return 0, ErrInvalidCounterName
@@ -71,26 +78,26 @@ func (m *Mem) GetCounter(name string) (int64, error) {
 	return value, nil
 }
 
-func (m *Mem) AddCounter(name string, value int64) error {
-	name = m.normalizeName(name)
-	_, err := m.GetCounter(name)
+func (mStorage *MemStorage) AddCounter(name string, value int64) error {
+	name = mStorage.normalizeName(name)
+	_, err := mStorage.GetCounter(name)
 
-	m.mx.Lock()
-	defer m.mx.Unlock()
+	mStorage.mx.Lock()
+	defer mStorage.mx.Unlock()
 
 	if err != nil {
-		m.counter[name] = value
+		mStorage.counter[name] = value
 	} else {
-		m.counter[name] += value
+		mStorage.counter[name] += value
 	}
 
 	return nil
 }
 
-func (m *Mem) GetAll() ([]models.MetricsValue, error) {
+func (mStorage *MemStorage) GetAll() ([]models.MetricsValue, error) {
 	var values []models.MetricsValue
 
-	for k, v := range m.gauge {
+	for k, v := range mStorage.gauge {
 		values = append(values, models.MetricsValue{
 			ID:    k,
 			MType: string(models.GaugeType),
@@ -98,7 +105,7 @@ func (m *Mem) GetAll() ([]models.MetricsValue, error) {
 		})
 	}
 
-	for k, v := range m.counter {
+	for k, v := range mStorage.counter {
 		values = append(values, models.MetricsValue{
 			ID:    k,
 			MType: string(models.CounterType),
@@ -109,14 +116,18 @@ func (m *Mem) GetAll() ([]models.MetricsValue, error) {
 	return values, nil
 }
 
-func (m *Mem) Ping(_ context.Context) error {
+func (mStorage *MemStorage) Ping(_ context.Context) error {
 	return nil
 }
 
-func (m *Mem) GetMiddleware() gin.HandlerFunc {
+func (mStorage *MemStorage) GetMiddleware() gin.HandlerFunc {
 	return func(_ *gin.Context) {}
 }
 
-func (m *Mem) normalizeName(name string) string {
+func (mStorage *MemStorage) String() string {
+	return fmt.Sprintf("MemStorage - Pointer(%+v)", &mStorage)
+}
+
+func (mStorage *MemStorage) normalizeName(name string) string {
 	return strings.TrimSpace(name)
 }
