@@ -1,4 +1,4 @@
-package dbstorage
+package errs
 
 import "fmt"
 
@@ -7,7 +7,7 @@ type DatabaseError struct {
 	Err  error
 }
 
-func newDatabaseError(eType string, err error) *DatabaseError {
+func NewDatabaseError(eType string, err error) *DatabaseError {
 	return &DatabaseError{eType, err}
 }
 

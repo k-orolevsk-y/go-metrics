@@ -2,9 +2,9 @@ package memstorage
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/errs"
 	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/models"
 	"strings"
 	"sync"
@@ -16,11 +16,6 @@ type MemStorage struct {
 
 	mx sync.Mutex
 }
-
-var (
-	ErrInvalidGaugeName   = errors.New("invalid gauge name")
-	ErrInvalidCounterName = errors.New("invalid counter name")
-)
 
 func NewMem() *MemStorage {
 	return &MemStorage{
@@ -48,7 +43,7 @@ func (mStorage *MemStorage) GetGauge(name string) (float64, error) {
 
 	value, ok := mStorage.gauge[name]
 	if !ok {
-		return 0, ErrInvalidGaugeName
+		return 0, errs.ErrStorageInvalidGaugeName
 	}
 
 	return value, nil
@@ -72,7 +67,7 @@ func (mStorage *MemStorage) GetCounter(name string) (int64, error) {
 	value, ok := mStorage.counter[name]
 
 	if !ok {
-		return 0, ErrInvalidCounterName
+		return 0, errs.ErrStorageInvalidCounterName
 	}
 
 	return value, nil

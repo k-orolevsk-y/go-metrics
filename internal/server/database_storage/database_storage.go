@@ -8,6 +8,7 @@ import (
 	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jmoiron/sqlx"
+	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/errs"
 	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/models"
 	"github.com/k-orolevsk-y/go-metricts-tpl/pkg/logger"
 	"net"
@@ -81,14 +82,14 @@ func (dbStorage *databaseStorage) buildPrepares(ctx context.Context) error {
 }
 
 func (dbStorage *databaseStorage) Close() error {
-	var errs []error
+	var closeErrs []error
 
-	errs = append(errs, dbStorage.prepares.getGaugeMetric.Close())
-	errs = append(errs, dbStorage.prepares.getCounterMetric.Close())
-	errs = append(errs, dbStorage.prepares.setOrUpdateMetric.Close())
-	errs = append(errs, dbStorage.db.Close())
+	closeErrs = append(closeErrs, dbStorage.prepares.getGaugeMetric.Close())
+	closeErrs = append(closeErrs, dbStorage.prepares.getCounterMetric.Close())
+	closeErrs = append(closeErrs, dbStorage.prepares.setOrUpdateMetric.Close())
+	closeErrs = append(closeErrs, dbStorage.db.Close())
 
-	return errors.Join(errs...)
+	return errors.Join(closeErrs...)
 }
 
 func (dbStorage *databaseStorage) NewTx() (models.StorageTx, error) {
@@ -206,14 +207,14 @@ func (dbStorage *databaseStorage) String() string {
 	return fmt.Sprintf("DBStorage - %s", databaseName)
 }
 
-func parseRetriableError(err error) (bool, *DatabaseError) {
+func parseRetriableError(err error) (bool, *errs.DatabaseError) {
 	if err == nil {
 		return false, nil
 	}
 
 	var opErr *net.OpError
 	if errors.As(err, &opErr) {
-		return true, newDatabaseError("net.OpError", opErr)
+		return true, errs.NewDatabaseError("net.OpError", opErr)
 	}
 
 	var pgErr *pgconn.PgError
@@ -221,5 +222,5 @@ func parseRetriableError(err error) (bool, *DatabaseError) {
 		return false, nil
 	}
 
-	return true, newDatabaseError("pgconn.PgError", pgErr)
+	return true, errs.NewDatabaseError("pgconn.PgError", pgErr)
 }
