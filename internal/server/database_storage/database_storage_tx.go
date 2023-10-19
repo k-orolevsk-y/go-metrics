@@ -15,7 +15,13 @@ type tx struct {
 }
 
 func (t *tx) buildPrepares(ctx context.Context) (err error) {
-	t.prepareSetOrUpdateMetric, err = t.txDB.PrepareNamedContext(ctx, setOrUpdateMetricSQLRequest)
+	t.prepareSetOrUpdateMetric, err = t.txDB.PrepareNamedContext(
+		ctx,
+		`INSERT INTO metrics (name, mtype, delta, value) 
+				VALUES (:name, :mtype, :delta, :value)
+			ON CONFLICT (name, mtype) DO 
+			    UPDATE SET delta = metrics.delta + excluded.delta, value = excluded.value`,
+	)
 	return
 }
 

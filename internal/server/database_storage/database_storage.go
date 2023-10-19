@@ -15,6 +15,8 @@ import (
 	"time"
 )
 
+var maximumNumberOfRetries = []int{1, 3, 5}
+
 type (
 	databaseStorage struct {
 		db  *sqlx.DB
@@ -44,6 +46,16 @@ func New(db *sqlx.DB, log logger.Logger) (*databaseStorage, error) {
 		return dbStorage, nil
 	}
 
+	const schema = `CREATE TABLE IF NOT EXISTS metrics (
+	    "_id" SERIAL,
+		"name" TEXT NOT NULL,
+		"mtype" VARCHAR(12) NOT NULL DEFAULT 'gauge',
+		"delta" BIGINT NOT NULL DEFAULT 0,
+		"value" DOUBLE PRECISION NOT NULL DEFAULT 0.0,
+		CONSTRAINT unique_id_mtype UNIQUE (name, mtype),
+		PRIMARY KEY (_id)
+	)`
+
 	if _, err := dbStorage.db.ExecContext(ctx, schema); err != nil {
 		return nil, err
 	} else {
@@ -61,9 +73,12 @@ func New(db *sqlx.DB, log logger.Logger) (*databaseStorage, error) {
 
 func (dbStorage *databaseStorage) buildPrepares(ctx context.Context) error {
 	preparesData := map[string]string{
-		"getGaugeMetric":    getGaugeMetricSQLRequest,
-		"getCounterMetric":  getCounterMetricSQLRequest,
-		"setOrUpdateMetric": setOrUpdateMetricSQLRequest,
+		"getGaugeMetric":   `SELECT value FROM metrics WHERE name = :name AND mtype = 'gauge'`,
+		"getCounterMetric": `SELECT delta FROM metrics WHERE name = :name AND mtype = 'counter'`,
+		"setOrUpdateMetric": `INSERT INTO metrics (name, mtype, delta, value) 
+				VALUES (:name, :mtype, :delta, :value)
+			ON CONFLICT (name, mtype) DO 
+			    UPDATE SET delta = metrics.delta + excluded.delta, value = excluded.value`,
 	}
 
 	for key, sql := range preparesData {
