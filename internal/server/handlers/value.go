@@ -3,7 +3,6 @@ package handlers
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/models"
-	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/storage"
 	"net/http"
 	"strconv"
 )
@@ -11,12 +10,15 @@ import (
 func (bh baseHandler) ValueByURI() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		if !bh.validateContentType(ctx, "text/plain", true) {
+			bh.log.Debugf("Request with invalid content-type.")
 			bh.handleBadRequest(ctx)
 			return
 		}
 
 		id := ctx.Param("name")
 		if id == "" {
+			bh.log.Debugf("The required name parameter is not specified.")
+
 			ctx.Status(http.StatusNotFound)
 			ctx.Abort()
 
@@ -26,7 +28,7 @@ func (bh baseHandler) ValueByURI() gin.HandlerFunc {
 		var response interface{}
 		storageType := ctx.Param("type")
 
-		if storageType == string(storage.GaugeType) {
+		if storageType == string(models.GaugeType) {
 			value, err := bh.storage.GetGauge(id)
 			if err != nil {
 				ctx.Status(http.StatusNotFound)
@@ -35,8 +37,8 @@ func (bh baseHandler) ValueByURI() gin.HandlerFunc {
 				return
 			}
 
-			response = strconv.FormatFloat(value, 'f', -1, 64)
-		} else if storageType == string(storage.CounterType) {
+			response = strconv.FormatFloat(*value, 'f', -1, 64)
+		} else if storageType == string(models.CounterType) {
 			value, err := bh.storage.GetCounter(id)
 			if err != nil {
 				ctx.Status(http.StatusNotFound)
@@ -45,8 +47,9 @@ func (bh baseHandler) ValueByURI() gin.HandlerFunc {
 				return
 			}
 
-			response = value
+			response = *value
 		} else {
+			bh.log.Debugf("An invalid metric type was passed.")
 			bh.handleBadRequest(ctx)
 			return
 		}
@@ -59,6 +62,7 @@ func (bh baseHandler) ValueByURI() gin.HandlerFunc {
 func (bh baseHandler) ValueByBody() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		if !bh.validateContentType(ctx, "application/json", false) {
+			bh.log.Debugf("Request with invalid content-type.")
 			bh.handleBadRequest(ctx)
 			return
 		}
@@ -80,7 +84,7 @@ func (bh baseHandler) ValueByBody() gin.HandlerFunc {
 			return
 		}
 
-		if obj.MType == string(storage.GaugeType) {
+		if obj.MType == string(models.GaugeType) {
 			value, err := bh.storage.GetGauge(obj.ID)
 			if err != nil {
 				ctx.Status(http.StatusNotFound)
@@ -89,8 +93,8 @@ func (bh baseHandler) ValueByBody() gin.HandlerFunc {
 				return
 			}
 
-			obj.Value = &value
-		} else if obj.MType == string(storage.CounterType) {
+			obj.Value = value
+		} else if obj.MType == string(models.CounterType) {
 			delta, err := bh.storage.GetCounter(obj.ID)
 			if err != nil {
 				ctx.Status(http.StatusNotFound)
@@ -99,7 +103,7 @@ func (bh baseHandler) ValueByBody() gin.HandlerFunc {
 				return
 			}
 
-			obj.Delta = &delta
+			obj.Delta = delta
 		}
 
 		ctx.JSON(http.StatusOK, obj)

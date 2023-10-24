@@ -3,7 +3,6 @@ package handlers
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/models"
-	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/storage"
 	"net/http"
 	"strconv"
 )
@@ -11,12 +10,15 @@ import (
 func (bh baseHandler) UpdateByURI() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		if !bh.validateContentType(ctx, "text/plain", true) {
+			bh.log.Debugf("Request with invalid content-type.")
 			bh.handleBadRequest(ctx)
 			return
 		}
 
 		id := ctx.Param("name")
 		if id == "" {
+			bh.log.Debugf("The required name parameter is not specified.")
+
 			ctx.Status(http.StatusNotFound)
 			ctx.Abort()
 
@@ -24,23 +26,40 @@ func (bh baseHandler) UpdateByURI() gin.HandlerFunc {
 		}
 
 		storageType := ctx.Param("type")
-		if storageType == string(storage.GaugeType) {
+		if storageType == string(models.GaugeType) {
 			value, err := strconv.ParseFloat(ctx.Param("value"), 64)
 			if err != nil {
+				bh.log.Debugf("The value parameter is not parsed as a float64 value.")
 				bh.handleBadRequest(ctx)
 				return
 			}
 
-			bh.storage.SetGauge(id, value)
-		} else if storageType == string(storage.CounterType) {
+			if err = bh.storage.SetGauge(id, &value); err != nil {
+				bh.log.Errorf("Failed set/update counter value: %s", err)
+
+				ctx.Status(http.StatusInternalServerError)
+				ctx.Abort()
+
+				return
+			}
+		} else if storageType == string(models.CounterType) {
 			value, err := strconv.ParseInt(ctx.Param("value"), 0, 64)
 			if err != nil {
+				bh.log.Debugf("The value parameter is not parsed as a int64 value.")
 				bh.handleBadRequest(ctx)
 				return
 			}
 
-			bh.storage.AddCounter(id, value)
+			if err = bh.storage.AddCounter(id, &value); err != nil {
+				bh.log.Errorf("Failed set/update counter value: %s", err)
+
+				ctx.Status(http.StatusInternalServerError)
+				ctx.Abort()
+
+				return
+			}
 		} else {
+			bh.log.Debugf("An invalid metric type was passed.")
 			bh.handleBadRequest(ctx)
 			return
 		}
@@ -53,6 +72,7 @@ func (bh baseHandler) UpdateByURI() gin.HandlerFunc {
 func (bh baseHandler) UpdateByBody() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		if !bh.validateContentType(ctx, "application/json", false) {
+			bh.log.Debugf("Request with invalid content-type.")
 			bh.handleBadRequest(ctx)
 			return
 		}
@@ -74,16 +94,30 @@ func (bh baseHandler) UpdateByBody() gin.HandlerFunc {
 			return
 		}
 
-		if obj.MType == string(storage.GaugeType) {
-			bh.storage.SetGauge(obj.ID, *obj.Value)
-		} else if obj.MType == string(storage.CounterType) {
-			bh.storage.AddCounter(obj.ID, *obj.Delta)
+		if obj.MType == string(models.GaugeType) {
+			if err := bh.storage.SetGauge(obj.ID, obj.Value); err != nil {
+				bh.log.Errorf("Failed set/update counter value: %s", err)
+
+				ctx.Status(http.StatusInternalServerError)
+				ctx.Abort()
+
+				return
+			}
+		} else if obj.MType == string(models.CounterType) {
+			if err := bh.storage.AddCounter(obj.ID, obj.Delta); err != nil {
+				bh.log.Errorf("Failed set/update counter value: %s", err)
+
+				ctx.Status(http.StatusInternalServerError)
+				ctx.Abort()
+
+				return
+			}
 
 			counter, err := bh.storage.GetCounter(obj.ID)
 			if err != nil {
 				bh.log.Errorf("Failed to get updated counter value: %s", err)
 			} else {
-				obj.Delta = &counter
+				obj.Delta = counter
 			}
 		}
 
