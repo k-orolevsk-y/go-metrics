@@ -26,5 +26,6 @@ func Setup(r router) {
 
 	r.Use(bm.Logger)
 	r.Use(bm.Compress)
+	r.Use(bm.Hash)
 	r.Use(r.GetStorage().GetMiddleware())
 }

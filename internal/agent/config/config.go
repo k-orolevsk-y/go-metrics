@@ -10,12 +10,14 @@ var Config struct {
 	Address        string `env:"ADDRESS"`
 	ReportInterval int    `env:"REPORT_INTERVAL"`
 	PollInterval   int    `env:"POLL_INTERVAL"`
+	Key            string `env:"KEY"`
 }
 
 func Load() {
 	flag.StringVar(&Config.Address, "a", "localhost:8080", "server address")
 	flag.IntVar(&Config.ReportInterval, "r", 10, "report interval")
 	flag.IntVar(&Config.PollInterval, "p", 2, "poll interval")
+	flag.StringVar(&Config.Key, "k", "", "key for hash")
 }
 
 func Parse() error {

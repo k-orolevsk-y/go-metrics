@@ -12,6 +12,7 @@ var Config struct {
 	FileStoragePath string `env:"FILE_STORAGE_PATH"`
 	Restore         bool   `env:"RESTORE"`
 	DatabaseDSN     string `env:"DATABASE_DSN"`
+	Key             string `env:"KEY"`
 }
 
 func Load() {
@@ -20,6 +21,7 @@ func Load() {
 	flag.StringVar(&Config.FileStoragePath, "f", "tmp/metrics-db.json", "json file mem_storage path")
 	flag.BoolVar(&Config.Restore, "r", true, "whether to load old values from a file")
 	flag.StringVar(&Config.DatabaseDSN, "d", "", "postgresql dsn")
+	flag.StringVar(&Config.Key, "k", "", "key for hash")
 }
 
 func Parse() error {
