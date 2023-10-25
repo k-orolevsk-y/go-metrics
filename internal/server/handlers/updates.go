@@ -1,9 +1,11 @@
 package handlers
 
 import (
-	"github.com/gin-gonic/gin"
-	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/models"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
+
+	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/models"
 )
 
 func (bh baseHandler) Updates() gin.HandlerFunc {

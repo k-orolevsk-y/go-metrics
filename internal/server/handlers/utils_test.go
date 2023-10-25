@@ -3,15 +3,17 @@ package handlers
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/gin-gonic/gin"
-	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/models"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"io"
 	"math/rand"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/gin-gonic/gin"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
+	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/models"
 )
 
 func TestValidateContentType(t *testing.T) {

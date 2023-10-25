@@ -2,13 +2,15 @@ package middlewares
 
 import (
 	"bytes"
-	memstorage "github.com/k-orolevsk-y/go-metricts-tpl/internal/server/mem_storage"
-	"github.com/stretchr/testify/require"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
+
+	memstorage "github.com/k-orolevsk-y/go-metricts-tpl/internal/server/mem_storage"
 )
 
 func TestMiddlewareLogger(t *testing.T) {

@@ -1,8 +1,9 @@
 package memstorage
 
 import (
-	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/models"
 	"sync"
+
+	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/models"
 )
 
 type tx struct {

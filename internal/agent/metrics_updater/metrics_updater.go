@@ -3,13 +3,15 @@ package metricsupdater
 import (
 	"errors"
 	"fmt"
+	"net/http"
+	"time"
+
 	"github.com/go-resty/resty/v2"
+
 	"github.com/k-orolevsk-y/go-metricts-tpl/internal/agent/config"
 	"github.com/k-orolevsk-y/go-metricts-tpl/internal/agent/metrics"
 	"github.com/k-orolevsk-y/go-metricts-tpl/internal/agent/models"
 	"github.com/k-orolevsk-y/go-metricts-tpl/pkg/logger"
-	"net/http"
-	"time"
 )
 
 var (

@@ -1,8 +1,9 @@
 package handlers
 
 import (
-	"github.com/gin-gonic/gin"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
 func (bh baseHandler) BadRequest(ctx *gin.Context) {

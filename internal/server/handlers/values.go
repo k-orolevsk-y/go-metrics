@@ -2,11 +2,13 @@ package handlers
 
 import (
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/models"
 	"io"
 	"net/http"
 	"strings"
+
+	"github.com/gin-gonic/gin"
+
+	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/models"
 )
 
 func (bh baseHandler) Values() gin.HandlerFunc {

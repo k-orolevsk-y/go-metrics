@@ -4,12 +4,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
+
 	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/models"
-	"io"
-	"net/http"
 )
 
 func (bh baseHandler) validateContentType(ctx *gin.Context, contentType string, withoutContentType bool) bool {

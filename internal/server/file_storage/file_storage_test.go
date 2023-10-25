@@ -3,14 +3,16 @@ package filestorage
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/config"
-	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/models"
+	"os"
+	"testing"
+
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"go.uber.org/zap/zaptest"
-	"os"
-	"testing"
+
+	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/config"
+	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/models"
 )
 
 func getPointerFloat64(v float64) *float64 {

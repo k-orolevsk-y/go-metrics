@@ -2,9 +2,11 @@ package dbstorage
 
 import (
 	"context"
-	"github.com/jmoiron/sqlx"
-	"github.com/k-orolevsk-y/go-metricts-tpl/pkg/logger"
 	"time"
+
+	"github.com/jmoiron/sqlx"
+
+	"github.com/k-orolevsk-y/go-metricts-tpl/pkg/logger"
 )
 
 type tx struct {
