@@ -2,18 +2,20 @@ package metricsupdater
 
 import (
 	"bytes"
-	"github.com/go-resty/resty/v2"
-	"github.com/k-orolevsk-y/go-metricts-tpl/internal/agent/config"
-	"github.com/k-orolevsk-y/go-metricts-tpl/internal/agent/metrics"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 	"net"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"testing"
+
+	"github.com/go-resty/resty/v2"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
+
+	"github.com/k-orolevsk-y/go-metricts-tpl/internal/agent/config"
+	"github.com/k-orolevsk-y/go-metricts-tpl/internal/agent/metrics"
 )
 
 func handlerServer(w http.ResponseWriter, _ *http.Request) {

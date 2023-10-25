@@ -5,15 +5,17 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/config"
-	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/mem_storage"
-	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/models"
-	"github.com/k-orolevsk-y/go-metricts-tpl/pkg/logger"
 	"io"
 	"os"
 	"strings"
 	"time"
+
+	"github.com/gin-gonic/gin"
+
+	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/config"
+	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/mem_storage"
+	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/models"
+	"github.com/k-orolevsk-y/go-metricts-tpl/pkg/logger"
 )
 
 var retries = []int{1, 3, 5}

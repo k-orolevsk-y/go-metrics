@@ -1,10 +1,12 @@
 package handlers
 
 import (
-	"github.com/gin-gonic/gin"
-	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/models"
 	"net/http"
 	"strconv"
+
+	"github.com/gin-gonic/gin"
+
+	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/models"
 )
 
 func (bh baseHandler) ValueByURI() gin.HandlerFunc {

@@ -3,11 +3,13 @@ package memstorage
 import (
 	"context"
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/errs"
-	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/models"
 	"strings"
 	"sync"
+
+	"github.com/gin-gonic/gin"
+
+	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/errs"
+	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/models"
 )
 
 type MemStorage struct {

@@ -2,6 +2,7 @@ package middlewares
 
 import (
 	"github.com/gin-gonic/gin"
+
 	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/models"
 	"github.com/k-orolevsk-y/go-metricts-tpl/pkg/logger"
 )

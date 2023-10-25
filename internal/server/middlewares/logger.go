@@ -1,9 +1,10 @@
 package middlewares
 
 import (
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"time"
+
+	"github.com/gin-gonic/gin"
 )
 
 func (bm baseMiddleware) Logger(ctx *gin.Context) {

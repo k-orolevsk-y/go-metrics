@@ -1,9 +1,11 @@
 package memstorage
 
 import (
-	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/models"
-	"github.com/stretchr/testify/require"
 	"testing"
+
+	"github.com/stretchr/testify/require"
+
+	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/models"
 )
 
 func getPointerFloat64(v float64) *float64 {

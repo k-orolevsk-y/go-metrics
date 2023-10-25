@@ -2,15 +2,17 @@ package handlers
 
 import (
 	"errors"
-	"github.com/gin-gonic/gin"
-	"github.com/golang/mock/gomock"
-	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/mocks"
-	"github.com/stretchr/testify/require"
-	"go.uber.org/zap/zaptest"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/gin-gonic/gin"
+	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/require"
+	"go.uber.org/zap/zaptest"
+
+	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/mocks"
 )
 
 func TestPing(t *testing.T) {

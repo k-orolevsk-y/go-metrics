@@ -4,15 +4,17 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net"
+	"time"
+
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jmoiron/sqlx"
+
 	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/errs"
 	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/models"
 	"github.com/k-orolevsk-y/go-metricts-tpl/pkg/logger"
-	"net"
-	"time"
 )
 
 var maximumNumberOfRetries = []int{1, 3, 5}

@@ -1,13 +1,15 @@
 package handlers
 
 import (
-	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/mem_storage"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-	"go.uber.org/zap/zaptest"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"go.uber.org/zap/zaptest"
+
+	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/mem_storage"
 )
 
 func TestValues(t *testing.T) {

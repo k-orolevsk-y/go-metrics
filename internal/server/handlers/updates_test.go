@@ -3,15 +3,17 @@ package handlers
 import (
 	"bytes"
 	"encoding/json"
-	memstorage "github.com/k-orolevsk-y/go-metricts-tpl/internal/server/mem_storage"
-	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/models"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-	"go.uber.org/zap/zaptest"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"go.uber.org/zap/zaptest"
+
+	memstorage "github.com/k-orolevsk-y/go-metricts-tpl/internal/server/mem_storage"
+	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/models"
 )
 
 func TestUpdates(t *testing.T) {

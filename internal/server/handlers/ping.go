@@ -3,10 +3,12 @@ package handlers
 import (
 	"context"
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/models"
 	"net/http"
 	"time"
+
+	"github.com/gin-gonic/gin"
+
+	"github.com/k-orolevsk-y/go-metricts-tpl/internal/server/models"
 )
 
 func (bh baseHandler) Ping() gin.HandlerFunc {
