@@ -1,6 +1,10 @@
 package metricsupdater
 
 import (
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -15,7 +19,9 @@ import (
 )
 
 var (
-	retries                = []int{1, 3, 5}
+	retries = []int{1, 3, 5}
+
+	ErrorNotNeedHash       = errors.New("not need hash")
 	ErrorInvalidStatusCode = errors.New("invalid status code")
 )
 
@@ -48,26 +54,67 @@ func (u Updater) UpdateMetrics() {
 
 func (u Updater) updateMetrics(metricForUpdate []metrics.Metric) error {
 	url := fmt.Sprintf("http://%s/updates", config.Config.Address)
-	body := u.parseMetrics(metricForUpdate)
 
-	var err error
+	req, err := u.compileRequest(metricForUpdate)
+	if err != nil {
+		return err
+	}
+
 	for _, timeSleep := range retries {
-		resp, err := u.client.R().
-			SetBody(body).
-			Post(url)
-		if err == nil {
-			if resp.StatusCode() != http.StatusOK {
-				return ErrorInvalidStatusCode
-			} else {
-				return nil
-			}
+		resp, err := req.Post(url)
+		if err != nil {
+			u.log.Errorf("Failed to send metrics to server: %s. Retrying after %ds...", err, timeSleep)
+			time.Sleep(time.Duration(timeSleep) * time.Second)
+
+			continue
 		}
 
-		u.log.Errorf("Failed to send metrics to server: %s. Retrying after %ds...", err, timeSleep)
-		time.Sleep(time.Duration(timeSleep) * time.Second)
+		if resp.StatusCode() != http.StatusOK {
+			return ErrorInvalidStatusCode
+		} else {
+			return nil
+		}
 	}
 
 	return err
+}
+
+func (u Updater) compileRequest(metricsForRequest []metrics.Metric) (*resty.Request, error) {
+	body := u.parseMetrics(metricsForRequest)
+
+	req := u.client.R().
+		SetBody(body)
+
+	hash, err := u.hashMetrics(body)
+	if err != nil {
+		if !errors.Is(err, ErrorNotNeedHash) {
+			return nil, err
+		}
+	} else {
+		req.SetHeader("HashSHA256", hash)
+	}
+
+	return req, nil
+}
+
+func (u Updater) hashMetrics(metricsForHash *[]models.Metrics) (string, error) {
+	secureKey := config.Config.Key
+	if secureKey == "" {
+		return "", ErrorNotNeedHash
+	}
+
+	bodyBytes, err := json.Marshal(metricsForHash)
+	if err != nil {
+		return "", fmt.Errorf("hashMetrics: %w", err)
+	}
+
+	hash := hmac.New(sha256.New, []byte(secureKey))
+	hash.Write(bodyBytes)
+
+	hashed := hash.Sum(nil)
+	hexHashed := hex.EncodeToString(hashed)
+
+	return hexHashed, nil
 }
 
 func (u Updater) parseMetrics(metricsForParse []metrics.Metric) *[]models.Metrics {
