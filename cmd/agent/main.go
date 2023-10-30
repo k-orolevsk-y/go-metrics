@@ -1,12 +1,13 @@
 package main
 
 import (
+	"context"
 	"time"
 
 	"github.com/go-resty/resty/v2"
 
+	"github.com/k-orolevsk-y/go-metricts-tpl/internal/agent/collectors"
 	"github.com/k-orolevsk-y/go-metricts-tpl/internal/agent/config"
-	"github.com/k-orolevsk-y/go-metricts-tpl/internal/agent/metrics"
 	"github.com/k-orolevsk-y/go-metricts-tpl/internal/agent/metrics_updater"
 	"github.com/k-orolevsk-y/go-metricts-tpl/pkg/logger"
 )
@@ -30,23 +31,13 @@ func main() {
 	}
 	sugarLogger.Debugf("The config was successfully received and configured.")
 
+	collector := collectors.NewCollector(sugarLogger)
+	go collector.Run(context.Background())
+
 	client := resty.New()
-	store := metrics.NewRuntimeMetrics()
+	updater := metricsupdater.New(client, collector, sugarLogger)
 
-	go func() {
-		sugarLogger.Debugf("Metrics collector successfully initialized.")
-		for {
-			time.Sleep(time.Second * time.Duration(config.Config.PollInterval))
-
-			if err = store.Update(); err != nil {
-				sugarLogger.Panicf("Failed to update metrics: %s", err)
-			}
-		}
-	}()
-
-	updater := metricsupdater.New(client, store, sugarLogger)
 	sugarLogger.Debugf("Metrics updater successfully initialized.")
-
 	for {
 		time.Sleep(time.Second * time.Duration(config.Config.ReportInterval))
 		updater.UpdateMetrics()
