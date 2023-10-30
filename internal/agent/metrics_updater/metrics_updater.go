@@ -14,7 +14,6 @@ import (
 
 	"github.com/k-orolevsk-y/go-metricts-tpl/internal/agent/config"
 	"github.com/k-orolevsk-y/go-metricts-tpl/internal/agent/metrics"
-	"github.com/k-orolevsk-y/go-metricts-tpl/internal/agent/models"
 	"github.com/k-orolevsk-y/go-metricts-tpl/pkg/logger"
 )
 
@@ -28,27 +27,27 @@ var (
 type (
 	Updater struct {
 		client *resty.Client
-		store  store
+		col    collector
 		log    logger.Logger
 	}
 
-	store interface {
+	collector interface {
 		GetMetrics() []metrics.Metric
 	}
 )
 
-func New(client *resty.Client, store store, log logger.Logger) *Updater {
+func New(client *resty.Client, col collector, log logger.Logger) *Updater {
 	return &Updater{
 		client: client,
-		store:  store,
+		col:    col,
 		log:    log,
 	}
 }
 
 func (u Updater) UpdateMetrics() {
-	currentMetrics := u.store.GetMetrics()
+	currentMetrics := u.col.GetMetrics()
 	if err := u.updateMetrics(currentMetrics); err != nil {
-		u.log.Errorf("Failed to update metrics: %s (%T)", err, err)
+		u.log.Errorf("Failed to update collectors: %s (%T)", err, err)
 	}
 }
 
@@ -63,7 +62,7 @@ func (u Updater) updateMetrics(metricForUpdate []metrics.Metric) error {
 	for _, timeSleep := range retries {
 		resp, err := req.Post(url)
 		if err != nil {
-			u.log.Errorf("Failed to send metrics to server: %s. Retrying after %ds...", err, timeSleep)
+			u.log.Errorf("Failed to send collectors to server: %s. Retrying after %ds...", err, timeSleep)
 			time.Sleep(time.Duration(timeSleep) * time.Second)
 
 			continue
@@ -80,12 +79,10 @@ func (u Updater) updateMetrics(metricForUpdate []metrics.Metric) error {
 }
 
 func (u Updater) compileRequest(metricsForRequest []metrics.Metric) (*resty.Request, error) {
-	body := u.parseMetrics(metricsForRequest)
-
 	req := u.client.R().
-		SetBody(body)
+		SetBody(metricsForRequest)
 
-	hash, err := u.hashMetrics(body)
+	hash, err := u.hashMetrics(metricsForRequest)
 	if err != nil {
 		if !errors.Is(err, ErrorNotNeedHash) {
 			return nil, err
@@ -97,7 +94,7 @@ func (u Updater) compileRequest(metricsForRequest []metrics.Metric) (*resty.Requ
 	return req, nil
 }
 
-func (u Updater) hashMetrics(metricsForHash *[]models.Metrics) (string, error) {
+func (u Updater) hashMetrics(metricsForHash []metrics.Metric) (string, error) {
 	secureKey := config.Config.Key
 	if secureKey == "" {
 		return "", ErrorNotNeedHash
@@ -115,41 +112,4 @@ func (u Updater) hashMetrics(metricsForHash *[]models.Metrics) (string, error) {
 	hexHashed := hex.EncodeToString(hashed)
 
 	return hexHashed, nil
-}
-
-func (u Updater) parseMetrics(metricsForParse []metrics.Metric) *[]models.Metrics {
-	var objects []models.Metrics
-
-	for _, metric := range metricsForParse {
-		var obj models.Metrics
-		obj.ID = metric.Name
-
-		switch metric.Value.(type) {
-		case float64:
-			if metric.Type != metrics.GaugeType {
-				u.log.Errorf("Invalid metric type: %s - %s != %T", metric.Name, metric.Type, metric.Value)
-				continue
-			}
-			value := metric.Value.(float64)
-
-			obj.MType = string(metrics.GaugeType)
-			obj.Value = &value
-		case int64:
-			if metric.Type != metrics.CounterType {
-				u.log.Errorf("Invalid metric type: %s - %s != %T", metric.Name, metric.Type, metric.Value)
-				continue
-			}
-			delta := metric.Value.(int64)
-
-			obj.MType = string(metrics.CounterType)
-			obj.Delta = &delta
-		default:
-			u.log.Errorf("Invalid metric type: %s - %s", metric.Name, metric.Type)
-			continue
-		}
-
-		objects = append(objects, obj)
-	}
-
-	return &objects
 }

@@ -30,23 +30,13 @@ func TestUpdater_updateMetric(t *testing.T) {
 	}{
 		{
 			name:      "Positive Gauge Test",
-			metrics:   []metrics.Metric{{Name: "TestGaugePositive", Type: metrics.GaugeType, Value: float64(0.5)}},
+			metrics:   []metrics.Metric{metrics.NewMetric("TestGaugePositive", metrics.GaugeType, 0, float64(0.5))},
 			wantedErr: false,
 		},
 		{
 			name:      "Positive Counter Test",
-			metrics:   []metrics.Metric{{Name: "TestCounterPositive", Type: metrics.CounterType, Value: int64(1)}},
+			metrics:   []metrics.Metric{metrics.NewMetric("TestCounterPositive", metrics.CounterType, 1, 0)},
 			wantedErr: false,
-		},
-		{
-			name:      "Negative Gauge Test",
-			metrics:   []metrics.Metric{{Name: "TestGaugeNegative", Type: metrics.GaugeType, Value: int64(10)}},
-			wantedErr: true,
-		},
-		{
-			name:      "Negative Counter Test",
-			metrics:   []metrics.Metric{{Name: "TestCounterNegative", Type: metrics.CounterType, Value: float64(5.10)}},
-			wantedErr: true,
 		},
 	}
 
