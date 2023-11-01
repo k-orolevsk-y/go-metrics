@@ -49,6 +49,59 @@ func NewCollector(log logger.Logger) *Collector {
 	}
 }
 
+func (c *Collector) GetMetrics() []metrics.Metric {
+	c.mx.Lock()
+	defer c.mx.Unlock()
+
+	return c.metrics
+}
+
+func (c *Collector) Run(ctx context.Context) {
+	collectors := []string{"alternative", "gopsutil", "runtime"}
+
+	jobs := make(chan string, len(collectors))
+	results := make(chan workerResult, len(collectors))
+
+	defer close(jobs)
+	defer close(results)
+
+	for w := 1; w <= config.Config.RateLimit; w++ {
+		go c.worker(jobs, results)
+	}
+
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		default:
+			c.runWorkers(collectors, jobs, results)
+			time.Sleep(time.Second * time.Duration(config.Config.PollInterval))
+		}
+	}
+}
+
+func (c *Collector) runWorkers(collectors []string, jobs chan<- string, results <-chan workerResult) {
+	for _, col := range collectors {
+		jobs <- col
+	}
+
+	c.mx.Lock()
+	c.metrics = make([]metrics.Metric, 0)
+
+	for r := 1; r <= len(collectors); r++ {
+		result := <-results
+
+		if result.Err != nil {
+			c.log.Errorf("Error collect metrics: %s", result.Err)
+			continue
+		}
+
+		c.metrics = append(c.metrics, result.Res...)
+	}
+
+	c.mx.Unlock()
+}
+
 func (c *Collector) worker(jobs <-chan string, results chan<- workerResult) {
 	for job := range jobs {
 		col, ok := c.collectors[job]
@@ -70,53 +123,4 @@ func (c *Collector) worker(jobs <-chan string, results chan<- workerResult) {
 			Res: col.GetResults(),
 		}
 	}
-}
-
-func (c *Collector) Run(ctx context.Context) {
-	collectors := []string{"alternative", "gopsutil", "runtime"}
-
-	jobs := make(chan string, len(collectors))
-	results := make(chan workerResult, len(collectors))
-
-	defer close(jobs)
-	defer close(results)
-
-	for w := 1; w <= config.Config.RateLimit; w++ {
-		go c.worker(jobs, results)
-	}
-
-	for {
-		select {
-		case <-ctx.Done():
-			return
-		default:
-			for _, col := range collectors {
-				jobs <- col
-			}
-
-			c.mx.Lock()
-			c.metrics = make([]metrics.Metric, 0)
-
-			for r := 1; r <= len(collectors); r++ {
-				result := <-results
-
-				if result.Err != nil {
-					c.log.Errorf("Error collect metrics: %s", result.Err)
-					continue
-				}
-
-				c.metrics = append(c.metrics, result.Res...)
-			}
-
-			c.mx.Unlock()
-			time.Sleep(time.Second * time.Duration(config.Config.PollInterval))
-		}
-	}
-}
-
-func (c *Collector) GetMetrics() []metrics.Metric {
-	c.mx.Lock()
-	defer c.mx.Unlock()
-
-	return c.metrics
 }
